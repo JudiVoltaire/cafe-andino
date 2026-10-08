@@ -27,21 +27,21 @@ interface ModuleDef {
 }
 
 const MODULES: ModuleDef[] = [
-  { key: "order", label: "Bán hàng", icon: ShoppingBag, color: "blue" },
-  { key: "dashboard", label: "Tổng quan", icon: LayoutDashboard, color: "emerald" },
-  { key: "inventory", label: "Kho", icon: ClipboardList, color: "amber" },
-  { key: "cash", label: "Thu chi", icon: DollarSign, color: "green" },
-  { key: "reports", label: "Báo cáo", icon: BarChart3, color: "purple" },
-  { key: "settings", label: "Cài đặt", icon: Settings2, color: "gray" },
-  { key: "kds", label: "Màn bếp", icon: Tv, color: "red" },
+  { key: "order", label: "Ventas", icon: ShoppingBag, color: "blue" },
+  { key: "dashboard", label: "Panel", icon: LayoutDashboard, color: "emerald" },
+  { key: "inventory", label: "Inventario", icon: ClipboardList, color: "amber" },
+  { key: "cash", label: "Caja", icon: DollarSign, color: "green" },
+  { key: "reports", label: "Reportes", icon: BarChart3, color: "purple" },
+  { key: "settings", label: "Ajustes", icon: Settings2, color: "gray" },
+  { key: "kds", label: "Pantalla cocina", icon: Tv, color: "red" },
   { key: "karaoke", label: "Karaoke", icon: Music, color: "pink" },
 ];
 
 const ACTIONS: { key: ActionKey; label: string; short: string }[] = [
-  { key: "view", label: "Xem", short: "X" },
-  { key: "create", label: "Thêm", short: "T" },
-  { key: "edit", label: "Sửa", short: "S" },
-  { key: "delete", label: "Xóa", short: "Xo" },
+  { key: "view", label: "Ver", short: "V" },
+  { key: "create", label: "Crear", short: "C" },
+  { key: "edit", label: "Editar", short: "E" },
+  { key: "delete", label: "Eliminar", short: "X" },
 ];
 
 function parsePermissions(permissions: string): Record<string, ActionKey[]> {
@@ -293,7 +293,7 @@ export function UsersManager({ users, roles }: { users: User[]; roles: Role[] })
           {/* Role Name */}
           <div className="space-y-1">
             <Label>{t.settings.roleName}</Label>
-            <Input value={roleName} onChange={e => setRoleName(e.target.value)} placeholder="VD: Thu Ngân" className="font-semibold" />
+            <Input value={roleName} onChange={e => setRoleName(e.target.value)} placeholder="Ej: Cajero" className="font-semibold" />
           </div>
 
           {/* Quick presets */}

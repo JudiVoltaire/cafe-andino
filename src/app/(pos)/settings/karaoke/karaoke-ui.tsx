@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useTransition } from "react";
 import { useI18n } from "@/i18n/context";
@@ -23,7 +23,7 @@ type Props = {
   deleteKP: (id: string) => Promise<any>;
 };
 
-const fmt = (v: number) => new Intl.NumberFormat("vi-VN").format(v);
+const fmt = (v: number) => new Intl.NumberFormat("es-BO").format(v);
 
 export function KaraokePricingManager({ pricings, areas, createKP, updateKP, deleteKP }: Props) {
   const { t } = useI18n();
@@ -101,7 +101,7 @@ export function KaraokePricingManager({ pricings, areas, createKP, updateKP, del
                   </div>
                   <div>
                     <span className="text-xs text-muted-foreground">{t.settings.pricePerUnit.replace("{unit}", t.settings.timeUnits[kp.timeUnit as keyof typeof t.settings.timeUnits] || "?")}</span>
-                    <p className="font-bold text-amber-600 mt-0.5">{fmt(kp.pricePerHour)}đ</p>
+                    <p className="font-bold text-amber-600 mt-0.5">{fmt(kp.pricePerHour)}Bs</p>
                   </div>
                   <div>
                     <span className="text-xs text-muted-foreground">{t.settings.minLabel}</span>
@@ -166,7 +166,7 @@ export function KaraokePricingManager({ pricings, areas, createKP, updateKP, del
                 </Select>
               </div>
               <div className="space-y-1">
-                <Label>{t.settings.pricePerUnit.replace("{unit}", t.settings.timeUnits[form.timeUnit as keyof typeof t.settings.timeUnits] || "?")} (₫)</Label>
+                <Label>{t.settings.pricePerUnit.replace("{unit}", t.settings.timeUnits[form.timeUnit as keyof typeof t.settings.timeUnits] || "?")} (Bs)</Label>
                 <Input type="number" value={form.pricePerHour} onChange={e => setForm(f => ({ ...f, pricePerHour: e.target.value }))} />
               </div>
             </div>

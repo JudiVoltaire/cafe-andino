@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useTransition, useEffect } from "react";
 import { Input } from "@/components/ui/input";
@@ -20,7 +20,7 @@ type Supplier = { id: string; name: string; contact: string | null; phone: strin
 
 type StockInItem = { ingredientId: string; ingredientName: string; quantity: string; unitPrice: string; purchaseUnit: string; baseUnit: string };
 
-function fmt(n: number) { return new Intl.NumberFormat("vi-VN").format(n || 0); }
+function fmt(n: number) { return new Intl.NumberFormat("es-BO").format(n || 0); }
 
 export function InventoryClient({
   ingredients, stockIns, stockOuts, lowStock, allIngredients, suppliers
@@ -118,12 +118,12 @@ export function InventoryClient({
         </TabsContent>
         <TabsContent value="in" className="mt-4">
           <div className={`section-amber overflow-hidden ${isMobile ? "p-3" : "p-5"}`}><table className={`w-full text-sm ${isMobile ? "" : "text-sm"}`}><thead><tr className="bg-gray-50 border-b border-gray-200"><th className={`${isMobile ? "p-2.5" : "p-4"} text-left`}>{t.inventory.code}</th><th className={`${isMobile ? "p-2.5" : "p-4"} text-left`}>{t.inventory.date}</th><th className={`${isMobile ? "p-2.5" : "p-4"} text-left`}>{t.inventory.supplier}</th><th className={`${isMobile ? "p-2.5" : "p-4"} text-center`}>{t.inventory.items}</th><th className={`${isMobile ? "p-2.5" : "p-4"} text-right`}>{t.inventory.totalAmount}</th><th className={`${isMobile ? "p-2.5" : "p-4"} text-left`}>{t.inventory.staff}</th></tr></thead>
-            <tbody>{stockIns.map(si => (<tr key={si.id} className="border-b border-gray-100 hover:bg-amber-50/30"><td className={`${isMobile ? "p-2.5" : "p-4"} font-mono text-xs text-amber-700 font-semibold`}>{si.code}</td><td className={`${isMobile ? "p-2.5" : "p-4"} font-semibold text-xs`}>{new Date(si.createdAt).toLocaleDateString("vi-VN")}</td><td className={`${isMobile ? "p-2.5" : "p-4"} text-xs`}>{si.supplier || "—"}</td><td className={`${isMobile ? "p-2.5" : "p-4"} text-center text-xs`}>{si.items.length}</td><td className={`${isMobile ? "p-2.5" : "p-4"} text-right font-mono font-bold text-xs`}>{fmt(si.totalAmount)}đ</td><td className={`${isMobile ? "p-2.5" : "p-4"} text-xs`}>{si.user.name}</td></tr>))}</tbody></table>
+            <tbody>{stockIns.map(si => (<tr key={si.id} className="border-b border-gray-100 hover:bg-amber-50/30"><td className={`${isMobile ? "p-2.5" : "p-4"} font-mono text-xs text-amber-700 font-semibold`}>{si.code}</td><td className={`${isMobile ? "p-2.5" : "p-4"} font-semibold text-xs`}>{new Date(si.createdAt).toLocaleDateString("es-BO")}</td><td className={`${isMobile ? "p-2.5" : "p-4"} text-xs`}>{si.supplier || "—"}</td><td className={`${isMobile ? "p-2.5" : "p-4"} text-center text-xs`}>{si.items.length}</td><td className={`${isMobile ? "p-2.5" : "p-4"} text-right font-mono font-bold text-xs`}>{fmt(si.totalAmount)}Bs</td><td className={`${isMobile ? "p-2.5" : "p-4"} text-xs`}>{si.user.name}</td></tr>))}</tbody></table>
             {stockIns.length === 0 && <p className="text-center text-gray-400 py-12">{t.reports.noData} {t.inventory.noStockIns}</p>}</div>
         </TabsContent>
         <TabsContent value="out" className="mt-4">
           <div className={`section-amber overflow-hidden ${isMobile ? "p-3" : "p-5"}`}><table className="w-full text-sm"><thead><tr className="bg-gray-50 border-b border-gray-200"><th className={`${isMobile ? "p-2.5" : "p-4"} text-left`}>{t.inventory.date}</th><th className={`${isMobile ? "p-2.5" : "p-4"} text-left`}>{t.inventory.ingredient}</th><th className={`${isMobile ? "p-2.5" : "p-4"} text-right`}>SL</th><th className={`${isMobile ? "p-2.5" : "p-4"} text-left`}>{t.inventory.reason}</th><th className={`${isMobile ? "p-2.5" : "p-4"} text-left`}>{t.inventory.staff}</th></tr></thead>
-            <tbody>{stockOuts.map(so => (<tr key={so.id} className="border-b border-gray-100"><td className={`${isMobile ? "p-2.5" : "p-4"} font-semibold text-xs`}>{new Date(so.createdAt).toLocaleDateString("vi-VN")}</td><td className={`${isMobile ? "p-2.5" : "p-4"} text-xs`}>{so.ingredient?.name}</td><td className={`${isMobile ? "p-2.5" : "p-4"} text-right font-mono text-xs`}>{so.quantity}</td><td className={`${isMobile ? "p-2.5" : "p-4"} text-xs`}><span className="inline-flex text-xs bg-gray-100 rounded-lg px-2.5 py-1 font-medium">{so.reason}</span></td><td className={`${isMobile ? "p-2.5" : "p-4"} text-xs`}>{so.user?.name}</td></tr>))}</tbody></table>
+            <tbody>{stockOuts.map(so => (<tr key={so.id} className="border-b border-gray-100"><td className={`${isMobile ? "p-2.5" : "p-4"} font-semibold text-xs`}>{new Date(so.createdAt).toLocaleDateString("es-BO")}</td><td className={`${isMobile ? "p-2.5" : "p-4"} text-xs`}>{so.ingredient?.name}</td><td className={`${isMobile ? "p-2.5" : "p-4"} text-right font-mono text-xs`}>{so.quantity}</td><td className={`${isMobile ? "p-2.5" : "p-4"} text-xs`}><span className="inline-flex text-xs bg-gray-100 rounded-lg px-2.5 py-1 font-medium">{so.reason}</span></td><td className={`${isMobile ? "p-2.5" : "p-4"} text-xs`}>{so.user?.name}</td></tr>))}</tbody></table>
             {stockOuts.length === 0 && <p className="text-center text-gray-400 py-12">{t.reports.noData} {t.inventory.noStockOuts}</p>}</div>
         </TabsContent>
       </Tabs>
@@ -286,7 +286,7 @@ function StockInPanel({
             {supplierId && (
               <p className="text-xs text-amber-600 flex items-center gap-1 mt-1">
                 <RefreshCw className="h-3 w-3" />
-                {isMobile ? "Đã tự điền từ lần nhập gần nhất" : "Đã điền danh sách nguyên liệu từ lần nhập gần nhất"}
+                {isMobile ? "Autocompletado de la última entrada" : "Lista de ingredientes completada desde la última entrada"}
               </p>
             )}
           </div>
@@ -300,7 +300,7 @@ function StockInPanel({
         <div className={`flex-1 overflow-y-auto ${isMobile ? "px-2 py-3" : "px-8 py-4"}`}>
           <div className="flex items-center justify-between mb-3">
             <Label className={`font-semibold text-gray-700 ${isMobile ? "text-xs" : "text-sm"}`}>
-              Danh sách nguyên liệu ({items.length})
+              Lista de ingredientes ({items.length})
               {loadingItems && <span className="ml-2 text-amber-500 font-normal animate-pulse">{t.common.loading}</span>}
             </Label>
             <button onClick={addEmptyRow} className="h-9 px-3 text-xs rounded-lg bg-amber-50 border border-amber-200 text-amber-700 hover:bg-amber-100 transition-colors touch-manipulation">
@@ -316,7 +316,7 @@ function StockInPanel({
                   <th className="text-left p-3 font-semibold text-gray-600">{t.inventory.ingredient}</th>
                   <th className="text-left p-3 w-24 text-gray-400 text-xs">{t.inventory.unit}</th>
                   <th className="text-left p-3 w-36 font-semibold text-gray-600">{t.inventory.quantity}</th>
-                  <th className="text-left p-3 w-40 font-semibold text-gray-600">{t.inventory.unitPrice} (đ)</th>
+                  <th className="text-left p-3 w-40 font-semibold text-gray-600">{t.inventory.unitPrice} (Bs)</th>
                   <th className="text-right p-3 w-36 font-semibold text-gray-600">{t.inventory.totalPrice}</th>
                   <th className="text-center p-3 pr-4 w-16"></th>
                 </tr>
@@ -413,7 +413,7 @@ function StockInPanel({
             </div>
             <div className={`${isMobile ? "text-base" : "text-lg"}`}>
               <span className={`text-gray-500 ${isMobile ? "text-xs" : "text-sm"}`}>{t.inventory.totalAmount}:</span>
-              <span className="ml-2 font-bold text-amber-600">{fmt(total)}đ</span>
+              <span className="ml-2 font-bold text-amber-600">{fmt(total)}Bs</span>
             </div>
           </div>
           <div className="flex gap-2">

@@ -96,7 +96,7 @@ export async function createStockIn(data: {
         type: "EXPENSE",
         categoryId: "expense-stock",
         amount: totalAmount,
-        description: `Nhập kho #${data.supplier || "NCC"}`,
+        description: `Ingreso stock #${data.supplier || "PROV"}`,
         referenceId: stockIn.id,
         userId: data.userId,
       },

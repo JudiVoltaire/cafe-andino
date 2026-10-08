@@ -7,8 +7,8 @@ import { DeviceProvider } from "@/components/shared/device-provider";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "POS F&B",
-  description: "Hệ thống quản lý nhà hàng — POS F&B",
+  title: "Café Andino",
+  description: "Sistema de punto de venta para cafés y restaurantes",
   manifest: "/manifest.json",
   viewport: "width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover",
   other: {
@@ -30,7 +30,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="vi" className="h-full antialiased" suppressHydrationWarning>
+    <html lang="es" className="h-full antialiased" suppressHydrationWarning>
       <body className="min-h-full flex flex-col">
         <DeviceProvider>
           <I18nProvider>

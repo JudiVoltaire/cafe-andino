@@ -9,21 +9,21 @@ const I18nContext = createContext<{
   setLocale: (l: Locale) => void;
   t: Dictionary;
 }>({
-  locale: "vi",
+  locale: "es",
   setLocale: () => {},
-  t: getDictionary("vi"),
+  t: getDictionary("es"),
 });
 
 const STORAGE_KEY = "pos-locale";
 
 export function I18nProvider({ children }: { children: ReactNode }) {
-  const [locale, setLocaleState] = useState<Locale>("vi");
-  const [t, setT] = useState<Dictionary>(getDictionary("vi"));
+  const [locale, setLocaleState] = useState<Locale>("es");
+  const [t, setT] = useState<Dictionary>(getDictionary("es"));
 
   useEffect(() => {
     const stored = localStorage.getItem(STORAGE_KEY) as Locale | null;
     const cookieLocale = document.cookie.split("; ").find(r => r.startsWith("pos-locale="))?.split("=")[1];
-    if (stored && ["vi", "en", "zh", "ko", "ja"].includes(stored)) {
+    if (stored && ["es", "vi", "en", "zh", "ko", "ja"].includes(stored)) {
       setLocaleState(stored);
       setT(getDictionary(stored));
       // Set cookie on initial load so server components can pick up the locale

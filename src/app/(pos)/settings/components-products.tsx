@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useTransition, useMemo, useEffect } from "react";
 import { Button } from "@/components/ui/button";
@@ -145,7 +145,7 @@ export function ProductsManager({
 
   function handleDelete(id: string) { start(async () => { await deleteProduct(id); toast.success(t.common.success); }); }
 
-  function fmtPrice(v: number) { return new Intl.NumberFormat("vi-VN").format(v || 0); }
+  function fmtPrice(v: number) { return new Intl.NumberFormat("es-BO").format(v || 0); }
 
   return (
     <>
@@ -212,7 +212,7 @@ export function ProductsManager({
                   <Coffee className="h-4 w-4 text-gray-400" /> {p.name} {!p.isAvailable && <Badge variant="secondary">{t.settings.inactive}</Badge>}
                 </td>
                 <td className="px-4 py-3"><Badge variant="outline">{p.category?.name}</Badge></td>
-                <td className="px-4 py-3 font-mono text-sm">{fmtPrice(p.price)} ₫</td>
+                <td className="px-4 py-3 font-mono text-sm">{fmtPrice(p.price)} Bs</td>
                 <td className="px-4 py-3">{p.vat?.name} ({(p.vat?.rate ?? 0) * 100}%)</td>
                 <td className="px-4 py-3">{p.exciseTax ? `${p.exciseTax.name} (${p.exciseTax.rate * 100}%)` : "—"}</td>
                 <td className="px-4 py-3">{p.unit?.name}</td>
@@ -255,8 +255,8 @@ export function ProductsManager({
               <div className="space-y-1"><Label>Slug</Label><Input value={form.slug} onChange={e => setForm(f => ({ ...f, slug: e.target.value }))} /></div>
             </div>
             <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-1"><Label>{t.settings.price} (₫)</Label><Input type="number" value={form.price} onChange={e => setForm(f => ({ ...f, price: e.target.value }))} /></div>
-              <div className="space-y-1"><Label>{t.settings.cost} (₫)</Label><Input type="number" value={form.costPrice} onChange={e => setForm(f => ({ ...f, costPrice: e.target.value }))} /></div>
+              <div className="space-y-1"><Label>{t.settings.price} (Bs)</Label><Input type="number" value={form.price} onChange={e => setForm(f => ({ ...f, price: e.target.value }))} /></div>
+              <div className="space-y-1"><Label>{t.settings.cost} (Bs)</Label><Input type="number" value={form.costPrice} onChange={e => setForm(f => ({ ...f, costPrice: e.target.value }))} /></div>
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1"><Label>{t.settings.categories}</Label>
@@ -461,7 +461,7 @@ function ToppingLinkDialog({
                     <div className="flex flex-wrap gap-1 mt-1.5">
                       {g.toppings.map(t => (
                         <span key={t.id} className="inline-flex text-[11px] bg-white border border-gray-200 rounded-md px-2 py-0.5 text-gray-500">
-                          {t.name}{t.price > 0 ? <span className="text-gray-400 ml-1">+{t.price.toLocaleString()}đ</span> : null}
+                          {t.name}{t.price > 0 ? <span className="text-gray-400 ml-1">+{t.price.toLocaleString()}Bs</span> : null}
                         </span>
                       ))}
                     </div>

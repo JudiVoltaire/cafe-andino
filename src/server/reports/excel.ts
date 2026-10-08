@@ -1,4 +1,4 @@
-"use server";
+﻿"use server";
 
 import ExcelJS from "exceljs";
 
@@ -83,8 +83,8 @@ export async function exportInvoicesToExcel(invoices: any[], summary: any, dateF
   const wb = new ExcelJS.Workbook();
   const ws = wb.addWorksheet("Invoices");
 
-  const d1 = new Date(dateFrom).toLocaleDateString("vi-VN");
-  const d2 = new Date(dateTo).toLocaleDateString("vi-VN");
+  const d1 = new Date(dateFrom).toLocaleDateString("es-BO");
+  const d2 = new Date(dateTo).toLocaleDateString("es-BO");
   addTitle(ws, "INVOICE REPORT");
   addSubtitle(ws, `From ${d1} to ${d2}`);
 
@@ -93,12 +93,12 @@ export async function exportInvoicesToExcel(invoices: any[], summary: any, dateF
   addSection(ws, "📊 OVERVIEW", row, 1); row++;
   const summaryData = [
     ["Total Orders:", summary.totalOrders],
-    ["Total Revenue:", `${fmt(summary.totalRevenue)}đ`],
-    ["Total Subtotal:", `${fmt(summary.totalSubtotal)}đ`],
-    ["Total VAT:", `${fmt(summary.totalVat)}đ`],
-    ["Total Excise Tax:", `${fmt(summary.totalExciseTax)}đ`],
-    ["Total Discount:", `${fmt(summary.totalDiscount)}đ`],
-    ["Total Service Charge:", `${fmt(summary.totalServiceCharge)}đ`],
+    ["Total Revenue:", `${fmt(summary.totalRevenue)}Bs`],
+    ["Total Subtotal:", `${fmt(summary.totalSubtotal)}Bs`],
+    ["Total VAT:", `${fmt(summary.totalVat)}Bs`],
+    ["Total Excise Tax:", `${fmt(summary.totalExciseTax)}Bs`],
+    ["Total Discount:", `${fmt(summary.totalDiscount)}Bs`],
+    ["Total Service Charge:", `${fmt(summary.totalServiceCharge)}Bs`],
   ];
   summaryData.forEach(([k, v]) => {
     ws.getCell(row, 1).value = k;
@@ -129,7 +129,7 @@ export async function exportInvoicesToExcel(invoices: any[], summary: any, dateF
       inv.totalAmount,
       inv.paymentMethods,
       inv.items,
-      inv.closedAt ? new Date(inv.closedAt).toLocaleDateString("vi-VN") : "",
+      inv.closedAt ? new Date(inv.closedAt).toLocaleDateString("es-BO") : "",
     ], row);
     row++;
   });
@@ -144,8 +144,8 @@ export async function exportSoldItemsToExcel(items: any[], byProduct: any[], sum
   const wb = new ExcelJS.Workbook();
   const ws = wb.addWorksheet("Sold Items");
 
-  const d1 = new Date(dateFrom).toLocaleDateString("vi-VN");
-  const d2 = new Date(dateTo).toLocaleDateString("vi-VN");
+  const d1 = new Date(dateFrom).toLocaleDateString("es-BO");
+  const d2 = new Date(dateTo).toLocaleDateString("es-BO");
   addTitle(ws, "SOLD ITEMS REPORT");
   addSubtitle(ws, `From ${d1} to ${d2}`);
 
@@ -154,7 +154,7 @@ export async function exportSoldItemsToExcel(items: any[], byProduct: any[], sum
   const summaryData = [
     ["Total Lines Sold:", summary.totalItems],
     ["Total Quantity:", summary.totalQuantity],
-    ["Total Revenue:", `${fmt(summary.totalRevenue)}đ`],
+    ["Total Revenue:", `${fmt(summary.totalRevenue)}Bs`],
   ];
   summaryData.forEach(([k, v]) => { ws.getCell(row, 1).value = k; ws.getCell(row, 1).font = { bold: true, size: 10 }; ws.getCell(row, 2).value = v; ws.getCell(row, 2).font = AMOUNT_FONT; row++; });
   row++;
@@ -177,7 +177,7 @@ export async function exportSoldItemsToExcel(items: any[], byProduct: any[], sum
     addDataRow(ws, [
       it.productName, it.category, it.quantity, it.unitPrice,
       it.toppings || "—", it.totalAmount, it.orderNumber, it.table,
-      it.closedAt ? new Date(it.closedAt).toLocaleDateString("vi-VN") : "",
+      it.closedAt ? new Date(it.closedAt).toLocaleDateString("es-BO") : "",
     ], row);
     row++;
   });
@@ -192,8 +192,8 @@ export async function exportRevenueToExcel(days: any[], summary: any, expensesBy
   const wb = new ExcelJS.Workbook();
   const ws = wb.addWorksheet("Revenue");
 
-  const d1 = new Date(dateFrom).toLocaleDateString("vi-VN");
-  const d2 = new Date(dateTo).toLocaleDateString("vi-VN");
+  const d1 = new Date(dateFrom).toLocaleDateString("es-BO");
+  const d2 = new Date(dateTo).toLocaleDateString("es-BO");
   addTitle(ws, "REVENUE REPORT");
   addSubtitle(ws, `From ${d1} to ${d2}`);
 
@@ -201,15 +201,15 @@ export async function exportRevenueToExcel(days: any[], summary: any, expensesBy
   addSection(ws, "📊 OVERVIEW", row, 1); row++;
   const summaryData = [
     ["Total Orders:", summary.totalOrders],
-    ["Total Sales Revenue:", `${fmt(summary.totalRevenue)}đ`],
-    ["Total Subtotal:", `${fmt(summary.totalSubtotal)}đ`],
-    ["Total VAT:", `${fmt(summary.totalVat)}đ`],
-    ["Total Excise Tax:", `${fmt(summary.totalExciseTax)}đ`],
-    ["Total Discount:", `${fmt(summary.totalDiscount)}đ`],
-    ["Total Service Charge:", `${fmt(summary.totalServiceCharge)}đ`],
-    ["Total Other Income:", `${fmt(summary.totalOtherIncome)}đ`],
-    ["Total Expenses:", `${fmt(summary.totalExpenses)}đ`],
-    ["Profit:", `${fmt(summary.profit)}đ`],
+    ["Total Sales Revenue:", `${fmt(summary.totalRevenue)}Bs`],
+    ["Total Subtotal:", `${fmt(summary.totalSubtotal)}Bs`],
+    ["Total VAT:", `${fmt(summary.totalVat)}Bs`],
+    ["Total Excise Tax:", `${fmt(summary.totalExciseTax)}Bs`],
+    ["Total Discount:", `${fmt(summary.totalDiscount)}Bs`],
+    ["Total Service Charge:", `${fmt(summary.totalServiceCharge)}Bs`],
+    ["Total Other Income:", `${fmt(summary.totalOtherIncome)}Bs`],
+    ["Total Expenses:", `${fmt(summary.totalExpenses)}Bs`],
+    ["Profit:", `${fmt(summary.profit)}Bs`],
   ];
   summaryData.forEach(([k, v]) => { ws.getCell(row, 1).value = k; ws.getCell(row, 1).font = { bold: true, size: 10 }; ws.getCell(row, 2).value = v; ws.getCell(row, 2).font = AMOUNT_FONT; row++; });
   row++;
@@ -220,7 +220,7 @@ export async function exportRevenueToExcel(days: any[], summary: any, expensesBy
     Object.entries(summary.byPaymentMethod).forEach(([method, amount]) => {
       ws.getCell(row, 1).value = method;
       ws.getCell(row, 1).font = { bold: true, size: 10 };
-      ws.getCell(row, 2).value = `${fmt(amount as number)}đ`;
+      ws.getCell(row, 2).value = `${fmt(amount as number)}Bs`;
       ws.getCell(row, 2).font = AMOUNT_FONT;
       row++;
     });
@@ -229,11 +229,11 @@ export async function exportRevenueToExcel(days: any[], summary: any, expensesBy
 
   // Daily breakdown
   addSection(ws, "📅 DAILY REVENUE", row, 1); row++;
-  const dayHeaders = ["Ngày", "Số HĐ", "Tiền hàng", "VAT", "TTĐB", "Giảm giá", "Phí DV", "Doanh thu", "Normal", "Complimentary"];
+  const dayHeaders = ["Fecha", "Nº fact.", "Subtotal", "IVA", "Esp.", "Descuento", "Recargo", "Ingresos", "Normal", "Cortesía"];
   addHeaderRow(ws, dayHeaders, row); row++;
   days.forEach((d) => {
     addDataRow(ws, [
-      new Date(d.date).toLocaleDateString("vi-VN"), d.orders, d.subtotal, d.vat, d.excise,
+      new Date(d.date).toLocaleDateString("es-BO"), d.orders, d.subtotal, d.vat, d.excise,
       d.discount, d.service, d.revenue, d.normalCount, d.compCount,
     ], row);
     row++;
@@ -246,7 +246,7 @@ export async function exportRevenueToExcel(days: any[], summary: any, expensesBy
     Object.entries(expensesByCategory).forEach(([cat, amount]) => {
       ws.getCell(row, 1).value = cat;
       ws.getCell(row, 1).font = { bold: true, size: 10 };
-      ws.getCell(row, 2).value = `${fmt(amount as number)}đ`;
+      ws.getCell(row, 2).value = `${fmt(amount as number)}Bs`;
       ws.getCell(row, 2).font = AMOUNT_FONT;
       row++;
     });
@@ -262,8 +262,8 @@ export async function exportIngredientsToExcel(stockIns: any[], stockOuts: any[]
   const wb = new ExcelJS.Workbook();
   const ws = wb.addWorksheet("Ingredients");
 
-  const d1 = new Date(dateFrom).toLocaleDateString("vi-VN");
-  const d2 = new Date(dateTo).toLocaleDateString("vi-VN");
+  const d1 = new Date(dateFrom).toLocaleDateString("es-BO");
+  const d2 = new Date(dateTo).toLocaleDateString("es-BO");
   addTitle(ws, "INGREDIENT REPORT");
   addSubtitle(ws, `From ${d1} to ${d2}`);
 
@@ -272,7 +272,7 @@ export async function exportIngredientsToExcel(stockIns: any[], stockOuts: any[]
   const inSummary = [
     ["Total Stock Ins:", stockInSummary.totalStockIns],
     ["Total Items In:", stockInSummary.totalItems],
-    ["Total Stock In Value:", `${fmt(stockInSummary.totalAmount)}đ`],
+    ["Total Stock In Value:", `${fmt(stockInSummary.totalAmount)}Bs`],
   ];
   inSummary.forEach(([k, v]) => { ws.getCell(row, 1).value = k; ws.getCell(row, 1).font = { bold: true, size: 10 }; ws.getCell(row, 2).value = v; ws.getCell(row, 2).font = AMOUNT_FONT; row++; });
   row++;
@@ -281,7 +281,7 @@ export async function exportIngredientsToExcel(stockIns: any[], stockOuts: any[]
   const outSummary = [
     ["Total Stock Outs:", stockOutSummary.totalStockOuts],
     ["Total Qty Out:", stockOutSummary.totalQuantity],
-    ["FIFO Cost Out:", `${fmt(stockOutSummary.totalCost || 0)}đ`],
+    ["FIFO Cost Out:", `${fmt(stockOutSummary.totalCost || 0)}Bs`],
   ];
   outSummary.forEach(([k, v]) => { ws.getCell(row, 1).value = k; ws.getCell(row, 1).font = { bold: true, size: 10 }; ws.getCell(row, 2).value = v; ws.getCell(row, 2).font = AMOUNT_FONT; row++; });
   row++;
@@ -292,7 +292,7 @@ export async function exportIngredientsToExcel(stockIns: any[], stockOuts: any[]
   addHeaderRow(ws, inHeaders, row); row++;
   stockIns.forEach((si) => {
     si.items.forEach((item: any, idx: number) => {
-      const date = new Date(si.createdAt).toLocaleDateString("vi-VN");
+      const date = new Date(si.createdAt).toLocaleDateString("es-BO");
       addDataRow(ws, [
         idx === 0 ? si.code : "",
         idx === 0 ? date : "",
@@ -306,7 +306,7 @@ export async function exportIngredientsToExcel(stockIns: any[], stockOuts: any[]
       row++;
     });
     if (si.items.length === 0) {
-      addDataRow(ws, [si.code, new Date(si.createdAt).toLocaleDateString("vi-VN"), si.supplier || "—", "(no items)", 0, 0, 0, si.user?.name || "—"], row);
+      addDataRow(ws, [si.code, new Date(si.createdAt).toLocaleDateString("es-BO"), si.supplier || "—", "(no items)", 0, 0, 0, si.user?.name || "—"], row);
       row++;
     }
   });
@@ -319,7 +319,7 @@ export async function exportIngredientsToExcel(stockIns: any[], stockOuts: any[]
   stockOuts.forEach((so) => {
     const layers = so.batches?.map((b: any) => `${b.quantity} @ ${fmt(b.unitCost)} (${b.batch?.batchCode || "batch"})`).join("; ") || "";
     addDataRow(ws, [
-      new Date(so.createdAt).toLocaleDateString("vi-VN"),
+      new Date(so.createdAt).toLocaleDateString("es-BO"),
       so.ingredient?.name || "—",
       so.quantity,
       so.reason,
@@ -362,13 +362,13 @@ export async function exportWarehouseToExcel(ingredients: any[], summary: any, l
   const ws = wb.addWorksheet("Warehouse");
 
   addTitle(ws, "WAREHOUSE REPORT");
-  addSubtitle(ws, `Updated: ${new Date().toLocaleDateString("vi-VN")} ${new Date().toLocaleTimeString("vi-VN")}`);
+  addSubtitle(ws, `Updated: ${new Date().toLocaleDateString("es-BO")} ${new Date().toLocaleTimeString("es-BO")}`);
 
   let row = 4;
   addSection(ws, "📊 WAREHOUSE OVERVIEW", row, 1); row++;
   const summaryData = [
     ["Total Ingredients:", summary.totalIngredients],
-    ["Total Stock Value:", `${fmt(summary.totalStockValue)}đ`],
+    ["Total Stock Value:", `${fmt(summary.totalStockValue)}Bs`],
     ["Total Products:", summary.totalProducts],
     ["Total Categories:", summary.totalCategories],
     ["Total Suppliers:", summary.totalSuppliers],
@@ -410,7 +410,7 @@ export async function exportWarehouseToExcel(ingredients: any[], summary: any, l
       addDataRow(ws, [
         b.ingredient?.name || "—",
         b.batchCode || b.stockInItem?.stockIn?.code || "—",
-        new Date(b.receivedAt).toLocaleDateString("vi-VN"),
+        new Date(b.receivedAt).toLocaleDateString("es-BO"),
         b.stockInItem?.stockIn?.supplier || "—",
         b.remainingQuantity,
         b.ingredient?.baseUnit || "",

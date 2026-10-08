@@ -1,11 +1,11 @@
-"use server";
+﻿"use server";
 
 import { db } from "@/lib/db";
 import { revalidatePath } from "next/cache";
 import * as net from "net";
 
 function fmt(n: number) {
-  return new Intl.NumberFormat("vi-VN").format(n || 0);
+  return new Intl.NumberFormat("es-BO").format(n || 0);
 }
 
 // ======================== PARSE TEMPLATE CONFIG ========================
@@ -82,7 +82,7 @@ async function buildOrderContent(orderId: string, orderCfg: OrderCfg, sequence: 
   }
 
   if (orderCfg.showTable) lines.push(`Ban: ${order.table.name}`);
-  if (orderCfg.showTime) lines.push(now.toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit" }));
+  if (orderCfg.showTime) lines.push(now.toLocaleTimeString("es-BO", { hour: "2-digit", minute: "2-digit" }));
   lines.push("------------------------");
 
   const foodItems = order.items.filter(i => !i.product.slug.startsWith("karaoke-"));
@@ -144,7 +144,7 @@ async function buildBillContent(orderId: string, billCfg: BillCfg): Promise<stri
   if (addrParts.length > 0) lines.push(addrParts.join(" - "));
   if (billCfg.header.showTaxCode && genCfg?.taxCode) lines.push("MST: " + genCfg.taxCode);
   if (billCfg.header.showDateTime) {
-    lines.push(now.toLocaleDateString("vi-VN") + " " + now.toLocaleTimeString("vi-VN"));
+    lines.push(now.toLocaleDateString("es-BO") + " " + now.toLocaleTimeString("es-BO"));
   }
 
   lines.push("\x1B\x61\x00");
@@ -153,12 +153,12 @@ async function buildBillContent(orderId: string, billCfg: BillCfg): Promise<stri
   lines.push("========================================");
 
   if (billCfg.body.showOrderNumber) {
-    lines.push(`So HD: #${String(order.orderNumber).padStart(4, "0")}${order.orderNumberSuffix ? "-" + order.orderNumberSuffix : ""}`);
+    lines.push(`Factura: #${String(order.orderNumber).padStart(4, "0")}${order.orderNumberSuffix ? "-" + order.orderNumberSuffix : ""}`);
   }
-  if (billCfg.body.showTable) lines.push(`Ban: ${order.table.name}`);
-  if (billCfg.body.showGuestCount) lines.push(`So khach: ${order.guestCount}`);
-  lines.push("Ngay: " + now.toLocaleDateString("vi-VN") + " " + now.toLocaleTimeString("vi-VN"));
-  if (order.user?.name) lines.push(`Thu ngan: ${order.user.name}`);
+  if (billCfg.body.showTable) lines.push(`Mesa: ${order.table.name}`);
+  if (billCfg.body.showGuestCount) lines.push(`Comensales: ${order.guestCount}`);
+  lines.push("Fecha: " + now.toLocaleDateString("es-BO") + " " + now.toLocaleTimeString("es-BO"));
+  if (order.user?.name) lines.push(`Cajero/a: ${order.user.name}`);
 
   lines.push("----------------------------------------");
 

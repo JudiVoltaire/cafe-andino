@@ -414,7 +414,7 @@ async function syncKaraokeTime(orderId: string) {
     const vat = await db.vat.findFirst({ orderBy: { rate: "asc" } });
     timeProduct = await db.product.create({
       data: {
-        name: `Tính ${label} - ${pricing.name}`,
+        name: `Cobro ${label} - ${pricing.name}`,
         slug: productSlug,
         price: pricing.pricePerHour,
         costPrice: 0,

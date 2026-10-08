@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useTransition } from "react";
 import { useI18n } from "@/i18n/context";
@@ -387,16 +387,16 @@ function BillPreview({ config, width, name, t }: { config: BillConfig; width: nu
   const discount = 25000;
   const service = Math.round(subtotal * 0.05);
   const total = subtotal + vat - discount + service;
-  const f = (n: number) => new Intl.NumberFormat("vi-VN").format(n) + "đ";
+  const f = (n: number) => new Intl.NumberFormat("es-BO").format(n) + "Bs";
 
   return (
     <div style={{ width: maxW }} className="bg-white shadow-md rounded-none p-3 font-mono text-[10px] leading-relaxed text-black">
       {config.header.showLogo && <div className="text-center mb-1 text-sm">🍽️</div>}
       <div className="text-center font-bold text-[12px] mb-0.5">{name || t.settings.restaurantName.toUpperCase()}</div>
-      {config.header.showAddress && <div className="text-center text-[8px] text-gray-600">123 Nguyễn Huệ, Q.1, TP.HCM</div>}
-      {config.header.showPhone && <div className="text-center text-[8px] text-gray-600">📞 0909 123 456</div>}
-      {config.header.showTaxCode && <div className="text-center text-[8px] text-gray-600">{t.settings.taxCode}: 0312345678</div>}
-      {config.header.showDateTime && <div className="text-center text-[8px] text-gray-600 mb-1">{new Date().toLocaleDateString("vi-VN")} {new Date().toLocaleTimeString("vi-VN")}</div>}
+      {config.header.showAddress && <div className="text-center text-[8px] text-gray-600">Av. 16 de Julio 123, La Paz</div>}
+      {config.header.showPhone && <div className="text-center text-[8px] text-gray-600">📞 591 7123 4567</div>}
+      {config.header.showTaxCode && <div className="text-center text-[8px] text-gray-600">{t.settings.taxCode}: 1020304050</div>}
+      {config.header.showDateTime && <div className="text-center text-[8px] text-gray-600 mb-1">{new Date().toLocaleDateString("es-BO")} {new Date().toLocaleTimeString("es-BO")}</div>}
       <div className="border-t border-dashed border-gray-300 my-1" />
 
       {config.body.showOrderNumber && <div className="text-[9px] text-gray-500">{t.order.orderNumber}: #0042</div>}
@@ -442,7 +442,7 @@ function BillPreview({ config, width, name, t }: { config: BillConfig; width: nu
         </>
       )}
       {config.footer.showPaymentMethod && <div className="flex justify-between mt-1"><span>{t.reports.paymentMethods}:</span><span>{t.order.cash}</span></div>}
-      {config.footer.showCashier && <div className="text-[8px] text-gray-500 mt-0.5">{t.printTemplate.showCashier}: Nguyễn Văn A</div>}
+      {config.footer.showCashier && <div className="text-[8px] text-gray-500 mt-0.5">{t.printTemplate.showCashier}: Ana García</div>}
       {config.footer.thankYou && (
         <>
           <div className="border-t border-dashed border-gray-300 my-1" />

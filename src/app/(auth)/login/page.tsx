@@ -44,7 +44,7 @@ export default function LoginPage() {
           <div className="w-20 h-20 rounded-2xl bg-white shadow-lg border border-amber-100 flex items-center justify-center mx-auto mb-4 overflow-hidden">
             <Image src="/logo.png" alt="Logo" width={64} height={64} className="object-cover" />
           </div>
-          <h1 className="text-2xl font-extrabold text-gray-900 tracking-tight">POS F&B</h1>
+          <h1 className="text-2xl font-extrabold text-gray-900 tracking-tight">Café Andino</h1>
           <p className="text-sm text-gray-500 mt-1.5">{t.login.tagline}</p>
         </div>
 

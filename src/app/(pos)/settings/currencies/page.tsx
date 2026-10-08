@@ -8,7 +8,7 @@ export default async function CurrenciesPage() {
   return (
     <div>
       <h2 className="text-xl font-bold mb-2">{t.settings.sidebar.currencies}</h2>
-      <p className="text-sm text-muted-foreground mb-6">Quản lý tiền tệ — đặt tiền tệ chính và tỷ giá quy đổi.</p>
+      <p className="text-sm text-muted-foreground mb-6">Administra las monedas: define la moneda principal y la tasa de cambio.</p>
       <CurrenciesManager currencies={currencies} />
     </div>
   );

@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useTransition } from "react";
 import { Button } from "@/components/ui/button";
@@ -71,7 +71,7 @@ export function ToppingsManager({
               {g.toppings.map(t => (
                 <div key={t.id} className="flex items-center gap-1 border rounded-md px-3 py-1.5 text-sm">
                   <span>{t.name}</span>
-                  {t.price > 0 && <span className="text-muted-foreground text-xs">+{t.price.toLocaleString()}đ</span>}
+                  {t.price > 0 && <span className="text-muted-foreground text-xs">+{t.price.toLocaleString()}Bs</span>}
                   <Button variant="ghost" size="icon" className="h-5 w-5" onClick={() => { setEditTopping(t); setTForm({ name: t.name, price: t.price.toString(), toppingGroupId: t.toppingGroupId }); setOpenTopping(true); }}><Pencil className="h-2.5 w-2.5" /></Button>
                   <Button variant="ghost" size="icon" className="h-5 w-5" onClick={() => doAct(deleteTopping, t.id)}><Trash2 className="h-2.5 w-2.5 text-destructive" /></Button>
                 </div>

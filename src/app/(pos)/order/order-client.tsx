@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useTransition, useCallback, useEffect } from "react";
 import { useRouter } from "next/navigation";
@@ -32,7 +32,7 @@ type ProductInfo = {
 };
 type OrderDetail = Awaited<ReturnType<typeof getOrder>>;
 
-function fmt(v: number) { return new Intl.NumberFormat("vi-VN").format(v); }
+function fmt(v: number) { return new Intl.NumberFormat("es-BO").format(v); }
 
 // ─── Table Grid View ────────────────────────────────────────────
 export function TableGridView({
@@ -117,7 +117,7 @@ export function TableGridView({
         )}
       </div>
 
-      {/* Mobile: Mode banner + action bar ở dưới đầu trang */}
+      {/* Mobile: Mode banner + action bar ở dưới Bsầu trang */}
       {isMobile && (mergeMode || splitMode) && (
         <div className="px-3 py-2 text-xs flex items-center gap-2 shrink-0 bg-blue-50 border-b border-blue-200">
           <span className="font-semibold text-blue-700">{mergeMode ? t.order.mergeTablePrompt : t.order.splitTablePrompt}</span>
@@ -219,7 +219,7 @@ export function TableGridView({
                     <span className="text-[11px] font-mono font-bold text-amber-800">
                       #{String(order.orderNumber).padStart(8, "0")}{order.orderNumberSuffix ? `-${order.orderNumberSuffix}` : ""}
                     </span>
-                    <span className={`${isMobile ? "text-[10px]" : "text-xs"} font-bold text-amber-600`}>{fmt(order.totalAmount ?? 0)}đ</span>
+                    <span className={`${isMobile ? "text-[10px]" : "text-xs"} font-bold text-amber-600`}>{fmt(order.totalAmount ?? 0)}Bs</span>
                   </>
                 ) : (
                   <span className="text-[10px] font-medium text-emerald-700">{table.capacity} {isMobile ? "" : t.order.seats}</span>
@@ -335,7 +335,7 @@ function OrderDetailView({
               ) : (
                 <span className="text-[10px] font-semibold text-gray-500">x{item.quantity}</span>
               )}
-              <span className="font-mono font-bold text-xs shrink-0 w-16 text-right text-gray-900">{fmt(item.unitPrice * item.quantity)}đ</span>
+              <span className="font-mono font-bold text-xs shrink-0 w-16 text-right text-gray-900">{fmt(item.unitPrice * item.quantity)}Bs</span>
               {item.status === "PENDING" && !item.product.slug.startsWith("karaoke-") && (
                 <button onClick={() => onCancelItem(item.id)} className="text-[10px] text-red-400 hover:text-red-600 shrink-0 font-medium">{t.order.cancel}</button>
               )}
@@ -348,13 +348,13 @@ function OrderDetailView({
 
         {/* Totals + Actions */}
         <div className="px-4 py-3 space-y-1 text-sm shrink-0 border-t border-gray-200 bg-gray-50">
-          <div className="flex justify-between"><span className="text-gray-500">{t.order.tempBill}</span><span className="font-mono font-semibold">{fmt(orderDetail.subtotal)}đ</span></div>
-          {(orderDetail.vatAmount ?? 0) > 0 && <div className="flex justify-between"><span className="text-gray-500">{t.order.vat}</span><span className="font-mono">{fmt(orderDetail.vatAmount)}đ</span></div>}
-          {(orderDetail.exciseTaxAmount ?? 0) > 0 && <div className="flex justify-between"><span className="text-gray-500">{t.order.exciseTax}</span><span className="font-mono">{fmt(orderDetail.exciseTaxAmount)}đ</span></div>}
-          {(orderDetail.serviceCharge ?? 0) > 0 && <div className="flex justify-between"><span className="text-gray-500">{t.order.serviceCharge}</span><span className="font-mono">{fmt(orderDetail.serviceCharge)}đ</span></div>}
-          {(orderDetail.discountAmount ?? 0) > 0 && <div className="flex justify-between"><span className="text-gray-500">{t.order.discount}</span><span className="font-mono text-emerald-600">-{fmt(orderDetail.discountAmount)}đ</span></div>}
+          <div className="flex justify-between"><span className="text-gray-500">{t.order.tempBill}</span><span className="font-mono font-semibold">{fmt(orderDetail.subtotal)}Bs</span></div>
+          {(orderDetail.vatAmount ?? 0) > 0 && <div className="flex justify-between"><span className="text-gray-500">{t.order.vat}</span><span className="font-mono">{fmt(orderDetail.vatAmount)}Bs</span></div>}
+          {(orderDetail.exciseTaxAmount ?? 0) > 0 && <div className="flex justify-between"><span className="text-gray-500">{t.order.exciseTax}</span><span className="font-mono">{fmt(orderDetail.exciseTaxAmount)}Bs</span></div>}
+          {(orderDetail.serviceCharge ?? 0) > 0 && <div className="flex justify-between"><span className="text-gray-500">{t.order.serviceCharge}</span><span className="font-mono">{fmt(orderDetail.serviceCharge)}Bs</span></div>}
+          {(orderDetail.discountAmount ?? 0) > 0 && <div className="flex justify-between"><span className="text-gray-500">{t.order.discount}</span><span className="font-mono text-emerald-600">-{fmt(orderDetail.discountAmount)}Bs</span></div>}
           <div className="flex justify-between text-base font-extrabold pt-1.5 border-t border-gray-200 text-amber-600">
-            <span>{t.order.total}</span><span className="font-mono">{fmt(orderDetail.totalAmount)}đ</span>
+            <span>{t.order.total}</span><span className="font-mono">{fmt(orderDetail.totalAmount)}Bs</span>
           </div>
         </div>
 
@@ -393,22 +393,22 @@ function OrderDetailView({
         </div>
         <div className="flex-1 overflow-y-auto p-4 space-y-4">
           <div className="rounded-xl bg-gray-50 p-4 space-y-1.5">
-            <div className="flex justify-between text-sm"><span className="text-gray-500">{t.order.tempBill}</span><span className="font-mono">{fmt(orderDetail!.subtotal)}đ</span></div>
-            {(orderDetail!.vatAmount ?? 0) > 0 && <div className="flex justify-between text-sm"><span className="text-gray-500">{t.order.vat}</span><span className="font-mono">{fmt(orderDetail!.vatAmount)}đ</span></div>}
-            {(orderDetail!.exciseTaxAmount ?? 0) > 0 && <div className="flex justify-between text-sm"><span className="text-gray-500">{t.order.exciseTax}</span><span className="font-mono">{fmt(orderDetail!.exciseTaxAmount)}đ</span></div>}
-            {(orderDetail!.serviceCharge ?? 0) > 0 && <div className="flex justify-between text-sm"><span className="text-gray-500">{t.order.serviceCharge}</span><span className="font-mono">{fmt(orderDetail!.serviceCharge)}đ</span></div>}
-            {(orderDetail!.discountAmount ?? 0) > 0 && <div className="flex justify-between text-sm"><span className="text-gray-500">{t.order.discount}</span><span className="font-mono text-emerald-600">-{fmt(orderDetail!.discountAmount)}đ</span></div>}
-            <div className="flex justify-between text-lg font-bold border-t border-gray-200 pt-1.5 text-amber-600"><span>{t.order.total}</span><span className="font-mono">{fmt(orderDetail!.totalAmount)}đ</span></div>
+            <div className="flex justify-between text-sm"><span className="text-gray-500">{t.order.tempBill}</span><span className="font-mono">{fmt(orderDetail!.subtotal)}Bs</span></div>
+            {(orderDetail!.vatAmount ?? 0) > 0 && <div className="flex justify-between text-sm"><span className="text-gray-500">{t.order.vat}</span><span className="font-mono">{fmt(orderDetail!.vatAmount)}Bs</span></div>}
+            {(orderDetail!.exciseTaxAmount ?? 0) > 0 && <div className="flex justify-between text-sm"><span className="text-gray-500">{t.order.exciseTax}</span><span className="font-mono">{fmt(orderDetail!.exciseTaxAmount)}Bs</span></div>}
+            {(orderDetail!.serviceCharge ?? 0) > 0 && <div className="flex justify-between text-sm"><span className="text-gray-500">{t.order.serviceCharge}</span><span className="font-mono">{fmt(orderDetail!.serviceCharge)}Bs</span></div>}
+            {(orderDetail!.discountAmount ?? 0) > 0 && <div className="flex justify-between text-sm"><span className="text-gray-500">{t.order.discount}</span><span className="font-mono text-emerald-600">-{fmt(orderDetail!.discountAmount)}Bs</span></div>}
+            <div className="flex justify-between text-lg font-bold border-t border-gray-200 pt-1.5 text-amber-600"><span>{t.order.total}</span><span className="font-mono">{fmt(orderDetail!.totalAmount)}Bs</span></div>
           </div>
           <div><label className="text-sm font-medium text-gray-700 block mb-1">{t.order.paymentMethod}</label>
             <select className="w-full h-11 px-4 rounded-lg border border-gray-200 text-sm" value={mPaymentMethod} onChange={e => setMPaymentMethod(e.target.value)}>
               <option value="CASH">💵 {t.order.cash}</option><option value="BANK_TRANSFER">🏦 {t.order.transfer}</option><option value="MOMO">📱 Momo</option></select></div>
           <div><label className="text-sm font-medium text-gray-700 block mb-1">{t.order.amount}</label>
-            <input type="text" inputMode="numeric" style={{ textAlign: "right" }} className="w-full h-12 px-4 rounded-lg border border-gray-200 text-xl font-mono font-bold" value={mPaymentAmount ? Number(mPaymentAmount).toLocaleString("vi-VN") : ""} onFocus={e => e.target.value = mPaymentAmount || ""} onBlur={e => { const v = e.target.value.replace(/[^0-9]/g, ""); setMPaymentAmount(v); }} onChange={e => { const v = e.target.value.replace(/[^0-9]/g, ""); setMPaymentAmount(v); }} placeholder="0" /></div>
+            <input type="text" inputMode="numeric" style={{ textAlign: "right" }} className="w-full h-12 px-4 rounded-lg border border-gray-200 text-xl font-mono font-bold" value={mPaymentAmount ? Number(mPaymentAmount).toLocaleString("es-BO") : ""} onFocus={e => e.target.value = mPaymentAmount || ""} onBlur={e => { const v = e.target.value.replace(/[^0-9]/g, ""); setMPaymentAmount(v); }} onChange={e => { const v = e.target.value.replace(/[^0-9]/g, ""); setMPaymentAmount(v); }} placeholder="0" /></div>
           <div className="flex gap-3 pt-2">
             <button onClick={() => setMobileCheckout(false)} className="flex-1 h-12 rounded-xl border border-gray-200 font-medium text-sm text-gray-600 touch-manipulation">{t.order.cancel}</button>
             <button onClick={() => { if (!mobileCheckoutPending) onMobileCheckout(mPaymentMethod, raw); }} disabled={mobileCheckoutPending || !raw || parseFloat(raw) <= 0} className="flex-1 h-12 rounded-xl bg-red-500 hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold text-sm flex items-center justify-center gap-2 active:scale-[0.98] transition-all shadow-sm touch-manipulation">
-              {mobileCheckoutPending ? (<><svg className="animate-spin h-4 w-4" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" /></svg> {t.common.loading}</>) : (t.order.confirm + " — " + fmt(orderDetail!.totalAmount) + "đ")}
+              {mobileCheckoutPending ? (<><svg className="animate-spin h-4 w-4" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" /></svg> {t.common.loading}</>) : (t.order.confirm + " — " + fmt(orderDetail!.totalAmount) + "Bs")}
             </button>
           </div>
         </div>
@@ -469,7 +469,7 @@ function OrderDetailView({
                     <span className="text-xs font-semibold text-gray-900 truncate">{p.name}</span>
                   </div>
                   <div className="flex items-center justify-between mt-1.5">
-                    <span className="text-xs font-bold text-amber-600">{fmt(p.price)}đ</span>
+                    <span className="text-xs font-bold text-amber-600">{fmt(p.price)}Bs</span>
                     <span className="text-[10px] px-1.5 py-0.5 rounded bg-gray-100 text-gray-500 font-medium">{p.unit?.name}</span>
                   </div>
                   {(p.toppingGroups?.length ?? 0) > 0 && (
@@ -493,7 +493,7 @@ function OrderDetailView({
         >
           <ShoppingCart className="h-5 w-5" />
           <span>{t.order.orderedItems} ({orderDetail.items.length})</span>
-          <span className="font-mono">{fmt(orderDetail.totalAmount)}đ</span>
+          <span className="font-mono">{fmt(orderDetail.totalAmount)}Bs</span>
         </button>
         )}
 
@@ -521,8 +521,8 @@ function OrderDetailView({
           <span className="text-xs opacity-70 flex items-center gap-1">
             <Clock className="h-3 w-3" />
             {orderDetail.closedAt
-              ? `${t.order.closedAt} · ${new Date(orderDetail.closedAt).toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit" })}`
-              : `${t.order.openedAt} ${new Date(orderDetail.openedAt).toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit" })}`
+              ? `${t.order.closedAt} · ${new Date(orderDetail.closedAt).toLocaleTimeString("es-BO", { hour: "2-digit", minute: "2-digit" })}`
+              : `${t.order.openedAt} ${new Date(orderDetail.openedAt).toLocaleTimeString("es-BO", { hour: "2-digit", minute: "2-digit" })}`
             }
           </span>
           <span className="text-xs opacity-70 flex items-center gap-1">
@@ -532,7 +532,7 @@ function OrderDetailView({
             <button onClick={() => onGuestChange(1)} className="w-5 h-5 rounded-full bg-white/20 flex items-center justify-center hover:bg-white/30 active:scale-90 transition-all text-xs">+</button>
           </span>
         </div>
-        <span className="text-sm font-bold">{t.order.total}: {fmt(orderDetail.totalAmount)}đ</span>
+        <span className="text-sm font-bold">{t.order.total}: {fmt(orderDetail.totalAmount)}Bs</span>
         <button
           onClick={btState.connected ? onBtDisconnect : onBtConnect}
           disabled={btState.connecting}
@@ -573,7 +573,7 @@ function OrderDetailView({
                     <span className="text-xs font-semibold text-gray-900 truncate">{p.name}</span>
                   </div>
                   <div className="flex items-center justify-between mt-1.5">
-                    <span className="text-xs font-bold text-amber-600">{fmt(p.price)}đ</span>
+                    <span className="text-xs font-bold text-amber-600">{fmt(p.price)}Bs</span>
                     <span className="text-[10px] px-1.5 py-0.5 rounded bg-gray-100 text-gray-500 font-medium">{p.unit?.name}</span>
                   </div>
                   {(p.toppingGroups?.length ?? 0) > 0 && (
@@ -715,7 +715,7 @@ export function OrderClient({ areas, categories }: { areas: Area[]; categories: 
         if (ok) toast.success(t.order.printSuccess.replace("{type}", type === "ORDER" ? t.order.kitchen : type === "BILL" ? t.order.bill : t.order.prebill));
         else toast.error(t.order.printFailed);
       } else {
-        toast.info("Đã gửi in qua server");
+        toast.info("Impresión enviada vía servidor");
       }
     } catch (e) {
       // Print via server — no Bluetooth needed
@@ -808,7 +808,7 @@ export function OrderClient({ areas, categories }: { areas: Area[]; categories: 
                       else setToppingSelections(f => ({ ...f, [topping.id]: !f[topping.id] }));
                     }} className="h-4 w-4 accent-amber-500" />
                   <span className="text-sm flex-1">{topping.name}</span>
-                  {topping.price > 0 ? <span className="text-xs font-medium text-amber-600">+{fmt(topping.price)}đ</span> : <span className="text-xs text-emerald-600 font-medium">{t.order.free}</span>}
+                  {topping.price > 0 ? <span className="text-xs font-medium text-amber-600">+{fmt(topping.price)}Bs</span> : <span className="text-xs text-emerald-600 font-medium">{t.order.free}</span>}
                 </label>
               ))}</div>
             </div>
@@ -824,18 +824,18 @@ export function OrderClient({ areas, categories }: { areas: Area[]; categories: 
       {checkoutDialog && <MobileSheet open={checkoutDialog} onClose={() => setCheckoutDialog(false)} title={t.order.checkout}>
         <div className="space-y-4">
           <div className="rounded-xl bg-gray-50 p-4 space-y-1.5">
-            <div className="flex justify-between text-sm"><span className="text-gray-500">{t.order.tempBill}</span><span className="font-mono">{fmt(orderDetail!.subtotal)}đ</span></div>
-            {(orderDetail!.vatAmount ?? 0) > 0 && <div className="flex justify-between text-sm"><span className="text-gray-500">{t.order.vat}</span><span className="font-mono">{fmt(orderDetail!.vatAmount)}đ</span></div>}
-            {(orderDetail!.exciseTaxAmount ?? 0) > 0 && <div className="flex justify-between text-sm"><span className="text-gray-500">{t.order.exciseTax}</span><span className="font-mono">{fmt(orderDetail!.exciseTaxAmount)}đ</span></div>}
-            {(orderDetail!.serviceCharge ?? 0) > 0 && <div className="flex justify-between text-sm"><span className="text-gray-500">{t.order.serviceCharge}</span><span className="font-mono">{fmt(orderDetail!.serviceCharge)}đ</span></div>}
-            {(orderDetail!.discountAmount ?? 0) > 0 && <div className="flex justify-between text-sm"><span className="text-gray-500">{t.order.discount}</span><span className="font-mono text-emerald-600">-{fmt(orderDetail!.discountAmount)}đ</span></div>}
-            <div className="flex justify-between text-lg font-bold border-t border-gray-200 pt-1.5 text-amber-600"><span>{t.order.total}</span><span className="font-mono">{fmt(orderDetail!.totalAmount)}đ</span></div>
+            <div className="flex justify-between text-sm"><span className="text-gray-500">{t.order.tempBill}</span><span className="font-mono">{fmt(orderDetail!.subtotal)}Bs</span></div>
+            {(orderDetail!.vatAmount ?? 0) > 0 && <div className="flex justify-between text-sm"><span className="text-gray-500">{t.order.vat}</span><span className="font-mono">{fmt(orderDetail!.vatAmount)}Bs</span></div>}
+            {(orderDetail!.exciseTaxAmount ?? 0) > 0 && <div className="flex justify-between text-sm"><span className="text-gray-500">{t.order.exciseTax}</span><span className="font-mono">{fmt(orderDetail!.exciseTaxAmount)}Bs</span></div>}
+            {(orderDetail!.serviceCharge ?? 0) > 0 && <div className="flex justify-between text-sm"><span className="text-gray-500">{t.order.serviceCharge}</span><span className="font-mono">{fmt(orderDetail!.serviceCharge)}Bs</span></div>}
+            {(orderDetail!.discountAmount ?? 0) > 0 && <div className="flex justify-between text-sm"><span className="text-gray-500">{t.order.discount}</span><span className="font-mono text-emerald-600">-{fmt(orderDetail!.discountAmount)}Bs</span></div>}
+            <div className="flex justify-between text-lg font-bold border-t border-gray-200 pt-1.5 text-amber-600"><span>{t.order.total}</span><span className="font-mono">{fmt(orderDetail!.totalAmount)}Bs</span></div>
           </div>
           <div><label className="text-sm font-medium text-gray-700 block mb-1">{t.order.paymentMethod}</label>
             <select className="w-full h-11 px-4 rounded-lg border border-gray-200 text-sm" value={paymentMethod} onChange={e => setPaymentMethod(e.target.value)}>
               <option value="CASH">💵 {t.order.cash}</option><option value="BANK_TRANSFER">🏦 {t.order.transfer}</option><option value="MOMO">📱 Momo</option></select></div>
           <div><label className="text-sm font-medium text-gray-700 block mb-1">{t.order.amount}</label>
-            <input type="text" inputMode="numeric" style={{ textAlign: 'right' }} className="w-full h-11 px-4 rounded-lg border border-gray-200 text-lg font-mono font-bold" value={paymentAmount ? Number(paymentAmount).toLocaleString("vi-VN") : ""} onFocus={e => e.target.value = paymentAmount || ""} onBlur={e => { const raw = e.target.value.replace(/[^0-9]/g, ""); setPaymentAmount(raw); }} onChange={e => { const raw = e.target.value.replace(/[^0-9]/g, ""); setPaymentAmount(raw); }} placeholder="0" /></div>
+            <input type="text" inputMode="numeric" style={{ textAlign: 'right' }} className="w-full h-11 px-4 rounded-lg border border-gray-200 text-lg font-mono font-bold" value={paymentAmount ? Number(paymentAmount).toLocaleString("es-BO") : ""} onFocus={e => e.target.value = paymentAmount || ""} onBlur={e => { const raw = e.target.value.replace(/[^0-9]/g, ""); setPaymentAmount(raw); }} onChange={e => { const raw = e.target.value.replace(/[^0-9]/g, ""); setPaymentAmount(raw); }} placeholder="0" /></div>
           <div className="flex gap-3">
             <button onClick={() => setCheckoutDialog(false)} className="flex-1 h-11 rounded-lg border border-gray-200 font-medium text-sm text-gray-600">{t.order.cancel}</button>
             <button onClick={confirmCheckout} disabled={pending} className="flex-1 h-11 rounded-lg bg-red-500 text-white font-semibold text-sm">{t.order.checkout}</button>
@@ -850,7 +850,7 @@ export function OrderClient({ areas, categories }: { areas: Area[]; categories: 
             <label key={item.id} className="flex items-center gap-3 p-2.5 rounded-lg border border-gray-200 cursor-pointer has-[:checked]:border-purple-500 has-[:checked]:bg-purple-50">
               <input type="checkbox" className="h-4 w-4 accent-purple-500" checked={selectedItemIds.has(item.id)} onChange={() => setSelectedItemIds(p => { const n = new Set(p); n.has(item.id) ? n.delete(item.id) : n.add(item.id); return n; })} />
               <span className="text-sm flex-1">{item.product.name} x{item.quantity}</span>
-              <span className="text-xs font-mono">{fmt(item.unitPrice * item.quantity)}đ</span></label>
+              <span className="text-xs font-mono">{fmt(item.unitPrice * item.quantity)}Bs</span></label>
           ))}</div>
         <div className="flex gap-3">
           <button onClick={() => setSplitDialog(false)} className="flex-1 h-11 rounded-lg border border-gray-200 font-medium text-sm text-gray-600">{t.order.cancel}</button>

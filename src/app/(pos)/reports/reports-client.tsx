@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect, useCallback } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -11,7 +11,7 @@ import { useI18n } from "@/i18n/context";
 import { useDeviceInfo } from "@/components/shared/device-provider";
 import { Download, DollarSign, FileText, ShoppingBag, TrendingUp, Package, ClipboardList, AlertTriangle } from "lucide-react";
 
-function fmt(n: number) { return new Intl.NumberFormat("vi-VN").format(n || 0); }
+function fmt(n: number) { return new Intl.NumberFormat("es-BO").format(n || 0); }
 
 type InvoiceReport = Awaited<ReturnType<typeof getInvoiceReport>>;
 type SoldItemsReport = Awaited<ReturnType<typeof getSoldItemsReport>>;
@@ -148,14 +148,14 @@ function OverviewTab({ today, t }: { today: string; t: any }) {
 
   return (
     <div className="space-y-6">
-      <p className="text-sm text-gray-500">{new Date(today).toLocaleDateString("vi-VN", { weekday: "long", day: "numeric", month: "numeric", year: "numeric" })}</p>
+      <p className="text-sm text-gray-500">{new Date(today).toLocaleDateString("es-BO", { weekday: "long", day: "numeric", month: "numeric", year: "numeric" })}</p>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {[
-          { label: t.reports.revenue, value: fmt(report.revenue) + "đ", sub: report.orders + " " + t.dashboard.orders_unit, icon: DollarSign, color: "text-emerald-600", bg: "bg-emerald-50" },
-          { label: t.reports.expenseLabel, value: fmt(report.totalExpense) + "đ", sub: t.reports.expenseSub, icon: TrendingUp, color: "text-red-500", bg: "bg-red-50" },
-          { label: t.reports.profitLabel, value: fmt(report.profit) + "đ", sub: report.profit >= 0 ? t.reports.profitSub : t.reports.lossSub, icon: TrendingUp, color: report.profit >= 0 ? "text-emerald-600" : "text-red-500", bg: report.profit >= 0 ? "bg-emerald-50" : "bg-red-50" },
-          { label: t.reports.taxLabel, value: fmt(report.vatTotal + report.exciseTaxTotal) + "đ", sub: t.reports.taxSub, icon: FileText, color: "text-amber-600", bg: "bg-amber-50" },
+          { label: t.reports.revenue, value: fmt(report.revenue) + "Bs", sub: report.orders + " " + t.dashboard.orders_unit, icon: DollarSign, color: "text-emerald-600", bg: "bg-emerald-50" },
+          { label: t.reports.expenseLabel, value: fmt(report.totalExpense) + "Bs", sub: t.reports.expenseSub, icon: TrendingUp, color: "text-red-500", bg: "bg-red-50" },
+          { label: t.reports.profitLabel, value: fmt(report.profit) + "Bs", sub: report.profit >= 0 ? t.reports.profitSub : t.reports.lossSub, icon: TrendingUp, color: report.profit >= 0 ? "text-emerald-600" : "text-red-500", bg: report.profit >= 0 ? "bg-emerald-50" : "bg-red-50" },
+          { label: t.reports.taxLabel, value: fmt(report.vatTotal + report.exciseTaxTotal) + "Bs", sub: t.reports.taxSub, icon: FileText, color: "text-amber-600", bg: "bg-amber-50" },
         ].map((s, i) => (
           <div key={i} className="stat-card">
             <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${s.bg}`}><s.icon className={`h-5 w-5 ${s.color}`} /></div>
@@ -169,7 +169,7 @@ function OverviewTab({ today, t }: { today: string; t: any }) {
           <h3 className="text-sm font-semibold text-gray-900 mb-4">{t.reports.byPaymentMethod}</h3>
           {Object.keys(report.paymentMethods).length === 0 ? <p className="text-sm text-gray-400">{t.reports.noData}</p> : (
             <div className="space-y-2">{Object.entries(report.paymentMethods).map(([method, amount]) => (
-              <div key={method} className="flex items-center justify-between p-3 rounded-lg bg-gray-50 border border-gray-200"><span className="text-sm font-medium">{method}</span><span className="text-sm font-mono font-bold">{fmt(amount as number)}đ</span></div>
+              <div key={method} className="flex items-center justify-between p-3 rounded-lg bg-gray-50 border border-gray-200"><span className="text-sm font-medium">{method}</span><span className="text-sm font-mono font-bold">{fmt(amount as number)}Bs</span></div>
             ))}</div>
           )}
         </div>
@@ -179,7 +179,7 @@ function OverviewTab({ today, t }: { today: string; t: any }) {
             <div className="space-y-2">{topProducts.map((p, i) => (
               <div key={i} className="flex items-center justify-between p-3 rounded-lg bg-gray-50 border border-gray-200">
                 <div className="flex items-center gap-3"><span className="h-7 w-7 rounded-lg flex items-center justify-center text-xs font-bold text-white" style={{ backgroundColor: i < 3 ? "#d97706" : "#9ca3af" }}>{i + 1}</span><span className="text-sm font-medium">{p.name}</span></div>
-                <div className="flex items-center gap-4"><span className="text-xs text-gray-500">{p.quantity} {t.inventory.items}</span><span className="text-sm font-mono font-bold">{fmt(p.revenue)}đ</span></div>
+                <div className="flex items-center gap-4"><span className="text-xs text-gray-500">{p.quantity} {t.inventory.items}</span><span className="text-sm font-mono font-bold">{fmt(p.revenue)}Bs</span></div>
               </div>
             ))}</div>
           )}
@@ -218,9 +218,9 @@ function InvoiceTab({ today, t }: { today: string; t: any }) {
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
             {[
               { label: t.reports.totalInvoice, value: data.summary.totalOrders },
-              { label: t.reports.subtotalLabel, value: fmt(data.summary.totalSubtotal) + "đ" },
-              { label: t.reports.taxTotalLabel, value: fmt(data.summary.totalVat + data.summary.totalExciseTax) + "đ" },
-              { label: t.reports.totalRevenue, value: fmt(data.summary.totalRevenue) + "đ", highlight: true },
+              { label: t.reports.subtotalLabel, value: fmt(data.summary.totalSubtotal) + "Bs" },
+              { label: t.reports.taxTotalLabel, value: fmt(data.summary.totalVat + data.summary.totalExciseTax) + "Bs" },
+              { label: t.reports.totalRevenue, value: fmt(data.summary.totalRevenue) + "Bs", highlight: true },
             ].map((s, i) => (
               <div key={i} className={`stat-card ${s.highlight ? "ring-2 ring-amber-200" : ""}`}>
                 <p className="text-xs font-medium text-gray-500">{s.label}</p>
@@ -249,7 +249,7 @@ function InvoiceTab({ today, t }: { today: string; t: any }) {
                       <td className="p-3 text-right font-mono">{fmt(o.discountAmount)}</td><td className="p-3 text-right font-mono">{fmt(o.serviceCharge)}</td>
                       <td className="p-3 text-right font-mono font-bold">{fmt(o.totalAmount)}</td>
                       <td className="p-3 text-xs text-gray-500 max-w-40 truncate">{o.paymentMethods}</td>
-                      <td className="p-3">{o.closedAt ? new Date(o.closedAt).toLocaleDateString("vi-VN") : ""}</td>
+                      <td className="p-3">{o.closedAt ? new Date(o.closedAt).toLocaleDateString("es-BO") : ""}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -293,7 +293,7 @@ function SoldItemsTab({ today, t }: { today: string; t: any }) {
             {[
               { label: t.reports.totalSoldItems, value: data.summary.totalItems },
               { label: t.reports.totalSoldQty, value: data.summary.totalQuantity },
-              { label: t.reports.totalRevenue, value: fmt(data.summary.totalRevenue) + "đ", highlight: true },
+              { label: t.reports.totalRevenue, value: fmt(data.summary.totalRevenue) + "Bs", highlight: true },
             ].map((s, i) => (
               <div key={i} className={`stat-card ${s.highlight ? "ring-2 ring-amber-200" : ""}`}>
                 <p className="text-xs font-medium text-gray-500">{s.label}</p>
@@ -361,11 +361,11 @@ function RevenueTab({ today, t }: { today: string; t: any }) {
         <>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-4">
             {[
-              { label: t.reports.revenue, value: fmt(data.summary.totalRevenue) + "đ" },
-              { label: t.reports.subtotalLabel, value: fmt(data.summary.totalSubtotal) + "đ" },
-              { label: t.reports.taxLabel, value: fmt(data.summary.totalVat + data.summary.totalExciseTax) + "đ" },
-              { label: t.reports.expenseLabel, value: fmt(data.summary.totalExpenses) + "đ" },
-              { label: t.reports.profitLabel, value: fmt(data.summary.profit) + "đ", highlight: data.summary.profit >= 0 },
+              { label: t.reports.revenue, value: fmt(data.summary.totalRevenue) + "Bs" },
+              { label: t.reports.subtotalLabel, value: fmt(data.summary.totalSubtotal) + "Bs" },
+              { label: t.reports.taxLabel, value: fmt(data.summary.totalVat + data.summary.totalExciseTax) + "Bs" },
+              { label: t.reports.expenseLabel, value: fmt(data.summary.totalExpenses) + "Bs" },
+              { label: t.reports.profitLabel, value: fmt(data.summary.profit) + "Bs", highlight: data.summary.profit >= 0 },
             ].map((s, i) => (
               <div key={i} className={`stat-card ${s.highlight ? "ring-2 ring-emerald-200" : data.summary.profit < 0 && s.label === t.reports.profitLabel ? "ring-2 ring-red-200" : ""}`}>
                 <p className="text-xs font-medium text-gray-500">{s.label}</p>
@@ -380,7 +380,7 @@ function RevenueTab({ today, t }: { today: string; t: any }) {
               <h3 className="text-sm font-semibold text-gray-900 mb-4">{t.reports.byPaymentMethod}</h3>
               {Object.keys(data.summary.byPaymentMethod).length === 0 ? <p className="text-sm text-gray-400">{t.reports.noData}</p> : (
                 <div className="space-y-2">{Object.entries(data.summary.byPaymentMethod).map(([method, amount]) => (
-                  <div key={method} className="flex items-center justify-between p-3 rounded-lg bg-gray-50 border border-gray-200"><span className="text-sm font-medium">{method}</span><span className="text-sm font-mono font-bold">{fmt(amount as number)}đ</span></div>
+                  <div key={method} className="flex items-center justify-between p-3 rounded-lg bg-gray-50 border border-gray-200"><span className="text-sm font-medium">{method}</span><span className="text-sm font-mono font-bold">{fmt(amount as number)}Bs</span></div>
                 ))}</div>
               )}
             </div>
@@ -389,7 +389,7 @@ function RevenueTab({ today, t }: { today: string; t: any }) {
               <h3 className="text-sm font-semibold text-gray-900 mb-4">{t.reports.expenseLabel} {t.reports.byCategory.toLowerCase()}</h3>
               {Object.keys(data.expensesByCategory).length === 0 ? <p className="text-sm text-gray-400">{t.reports.noData}</p> : (
                 <div className="space-y-2">{Object.entries(data.expensesByCategory).map(([cat, amount]) => (
-                  <div key={cat} className="flex items-center justify-between p-3 rounded-lg bg-gray-50 border border-gray-200"><span className="text-sm font-medium">{cat}</span><span className="text-sm font-mono font-bold text-red-600">{fmt(amount as number)}đ</span></div>
+                  <div key={cat} className="flex items-center justify-between p-3 rounded-lg bg-gray-50 border border-gray-200"><span className="text-sm font-medium">{cat}</span><span className="text-sm font-mono font-bold text-red-600">{fmt(amount as number)}Bs</span></div>
                 ))}</div>
               )}
             </div>
@@ -407,7 +407,7 @@ function RevenueTab({ today, t }: { today: string; t: any }) {
                 </tr></thead>
                 <tbody>{data.days.map((d, i) => (
                   <tr key={i} className="border-b border-gray-100 hover:bg-amber-50/30">
-                    <td className="p-3 font-medium">{new Date(d.date).toLocaleDateString("vi-VN", { weekday: "short", day: "2-digit", month: "2-digit" })}</td>
+                    <td className="p-3 font-medium">{new Date(d.date).toLocaleDateString("es-BO", { weekday: "short", day: "2-digit", month: "2-digit" })}</td>
                     <td className="p-3 text-right">{d.orders}</td><td className="p-3 text-right font-mono">{fmt(d.subtotal)}</td>
                     <td className="p-3 text-right font-mono">{fmt(d.vat)}</td><td className="p-3 text-right font-mono">{fmt(d.excise)}</td>
                     <td className="p-3 text-right font-mono">{fmt(d.discount)}</td><td className="p-3 text-right font-mono">{fmt(d.service)}</td>
@@ -452,7 +452,7 @@ function IngredientTab({ today, t }: { today: string; t: any }) {
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
             {[
               { label: t.reports.stockInNote, value: data.stockInSummary.totalStockIns, icon: Package },
-              { label: t.reports.totalMoneyIn, value: fmt(data.stockInSummary.totalAmount) + "đ", highlight: true },
+              { label: t.reports.totalMoneyIn, value: fmt(data.stockInSummary.totalAmount) + "Bs", highlight: true },
               { label: t.reports.stockOutNote, value: data.stockOutSummary.totalStockOuts, icon: ShoppingBag },
               { label: t.reports.totalQtyOut, value: data.stockOutSummary.totalQuantity },
             ].map((s, i) => (
@@ -469,7 +469,7 @@ function IngredientTab({ today, t }: { today: string; t: any }) {
               <h3 className="text-sm font-semibold text-gray-900 mb-4">{t.inventory.stockIn} {t.settings.suppliers.toLowerCase()}</h3>
               {Object.keys(data.stockInSummary.bySupplier).length === 0 ? <p className="text-sm text-gray-400">{t.reports.noData}</p> : (
                 <div className="space-y-2">{Object.entries(data.stockInSummary.bySupplier).map(([sup, amount]) => (
-                  <div key={sup} className="flex items-center justify-between p-3 rounded-lg bg-gray-50 border border-gray-200"><span className="text-sm font-medium">{sup}</span><span className="text-sm font-mono font-bold">{fmt(amount as number)}đ</span></div>
+                  <div key={sup} className="flex items-center justify-between p-3 rounded-lg bg-gray-50 border border-gray-200"><span className="text-sm font-medium">{sup}</span><span className="text-sm font-mono font-bold">{fmt(amount as number)}Bs</span></div>
                 ))}</div>
               )}
             </div>
@@ -497,7 +497,7 @@ function IngredientTab({ today, t }: { today: string; t: any }) {
                 <tbody>{data.stockIns.slice(0, 100).flatMap(si => si.items.map((item: any, idx: number) => (
                   <tr key={`${si.id}-${idx}`} className="border-b border-gray-100 hover:bg-amber-50/30">
                     <td className="p-3 font-mono text-xs text-amber-700">{idx === 0 ? si.code : ""}</td>
-                    <td className="p-3">{idx === 0 ? new Date(si.createdAt).toLocaleDateString("vi-VN") : ""}</td>
+                    <td className="p-3">{idx === 0 ? new Date(si.createdAt).toLocaleDateString("es-BO") : ""}</td>
                     <td className="p-3">{idx === 0 ? (si.supplier || "—") : ""}</td>
                     <td className="p-3">{item.ingredient.name}</td>
                     <td className="p-3 text-right font-mono">{item.quantity}</td>
@@ -521,7 +521,7 @@ function IngredientTab({ today, t }: { today: string; t: any }) {
                 </tr></thead>
                 <tbody>{data.stockOuts.map((so: any) => (
                   <tr key={so.id} className="border-b border-gray-100 hover:bg-amber-50/30">
-                    <td className="p-3">{new Date(so.createdAt).toLocaleDateString("vi-VN")}</td>
+                    <td className="p-3">{new Date(so.createdAt).toLocaleDateString("es-BO")}</td>
                     <td className="p-3">{so.ingredient?.name || "—"}</td>
                     <td className="p-3 text-right font-mono">{so.quantity}</td>
                     <td className="p-3"><span className="inline-flex text-xs bg-gray-100 rounded-lg px-2.5 py-1 font-medium">{so.reason}</span></td>
@@ -593,7 +593,7 @@ function WarehouseTab({ today: _today, t }: { today: string; t: any }) {
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
             {[
               { label: t.reports.ingredientCount, value: data.summary.totalIngredients },
-              { label: t.reports.stockValue, value: fmt(data.summary.totalStockValue) + "đ", highlight: true },
+              { label: t.reports.stockValue, value: fmt(data.summary.totalStockValue) + "Bs", highlight: true },
               { label: t.reports.productsCount, value: data.summary.totalProducts },
               { label: t.reports.suppliersCount, value: data.summary.totalSuppliers },
             ].map((s, i) => (

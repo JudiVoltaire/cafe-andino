@@ -5,10 +5,10 @@ import { getDictionary } from "@/i18n/dictionaries";
 export async function getLocale(): Promise<Locale> {
   const store = await cookies();
   const cookieLocale = store.get("pos-locale")?.value;
-  if (cookieLocale && ["vi", "en", "zh", "ko", "ja"].includes(cookieLocale)) {
+  if (cookieLocale && ["es", "vi", "en", "zh", "ko", "ja"].includes(cookieLocale)) {
     return cookieLocale as Locale;
   }
-  return "vi";
+  return "es";
 }
 
 export async function getServerDictionary() {

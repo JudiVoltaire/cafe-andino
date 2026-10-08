@@ -1,4 +1,4 @@
-"use server";
+﻿"use server";
 
 import { db } from "@/lib/db";
 
@@ -92,7 +92,7 @@ export async function getInvoiceReport(mode: string, date?: string, startDate?: 
     discountAmount: o.discountAmount,
     serviceCharge: o.serviceCharge,
     totalAmount: o.totalAmount,
-    paymentMethods: o.payments.map(p => `${p.method}: ${p.amount.toLocaleString("vi-VN")}đ`).join("; "),
+    paymentMethods: o.payments.map(p => `${p.method}: ${p.amount.toLocaleString("es-BO")}Bs`).join("; "),
     staff: o.user?.name || "—",
     items: o.items.map(i => `${i.product.name} x${i.quantity}`).join(", "),
     openedAt: o.openedAt.toISOString(),
