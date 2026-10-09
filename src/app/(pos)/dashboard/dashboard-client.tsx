@@ -8,9 +8,22 @@ import {
 } from "lucide-react";
 import { useI18n } from "@/i18n/context";
 import { useDeviceInfo } from "@/components/shared/device-provider";
-import type { getDashboardStats } from "@/server/dashboard/actions";
+export type DashboardStats = {
+  revenue: number;
+  orderCount: number;
+  activeTables: number;
+  occupiedTables: number;
+  topProduct: string;
+  topQty: number;
+  timeline: {
+    label: string;
+    amount: number;
+    time: string;
+    color: string;
+  }[];
+};
 
-type Stats = Awaited<ReturnType<typeof getDashboardStats>>;
+type Stats = DashboardStats;
 
 const fmt = (v: number) => new Intl.NumberFormat("es-BO").format(v);
 
@@ -113,7 +126,7 @@ export function DashboardClient({ initialStats }: { initialStats: Stats }) {
             {(!stats || stats.timeline.length === 0) && (
               <p className="text-sm text-gray-400 text-center py-8">{t.dashboard.noActivity}</p>
             )}
-            {stats?.timeline.map((item, i) => (
+            {stats?.timeline.map((item: DashboardStats["timeline"][number], i: number) => (
               <div key={i} className="relative pl-8">
                 <div className="absolute left-0 top-0 w-5 h-5 rounded-full flex items-center justify-center border-[3px] border-white" style={{ backgroundColor: item.color + "20" }}>
                   <div className="w-2 h-2 rounded-full" style={{ backgroundColor: item.color }} />
