@@ -2,6 +2,8 @@ import { unstable_cache } from "next/cache";
 import { getSystemModules } from "@/server/settings/actions";
 import { PosLayoutClient } from "./pos-layout-client";
 
+export const dynamic = "force-dynamic";
+
 // Core modules that are always enabled unless explicitly disabled in system modules
 const CORE_MODULES = ["dashboard", "order", "cash", "reports", "settings"];
 
