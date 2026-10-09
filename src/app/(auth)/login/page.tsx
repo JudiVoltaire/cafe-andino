@@ -15,17 +15,30 @@ export default function LoginPage() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     start(async () => {
-      const res = await signIn("credentials", {
-        username: form.username,
-        password: form.password,
-        redirect: false,
-      });
-      if (res?.error) {
+      try {
+        const cleanUsername = (form.username || "").trim();
+        if (!cleanUsername) {
+          toast.error(t.login.wrongCredentials);
+          return;
+        }
+
+        const res = await signIn("credentials", {
+          username: cleanUsername,
+          password: form.password,
+          redirect: false,
+        });
+
+        if (res?.error) {
+          toast.error(t.login.wrongCredentials);
+          return;
+        }
+
+        // Redirect to first accessible module based on session scopes
+        window.location.href = "/order";
+      } catch (err) {
+        console.error("Login submission error:", err);
         toast.error(t.login.wrongCredentials);
-        return;
       }
-      // Redirect to first accessible module based on session scopes
-      window.location.href = "/order";
     });
   }
 

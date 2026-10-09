@@ -57,7 +57,7 @@ export async function createUser(data: {
 }) {
   const { hash } = await import("bcryptjs");
   const hashed = await hash(data.password, 12);
-  await db.user.create({ data: { ...data, password: hashed } });
+  await db.user.create({ data: { ...data, username: data.username.trim(), password: hashed } });
   revalidatePath("/settings/users");
 }
 

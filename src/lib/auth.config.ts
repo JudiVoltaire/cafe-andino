@@ -29,7 +29,7 @@ export const authConfig: NextAuthConfig = {
   session: {
     strategy: "jwt",
   },
-  secret: process.env.AUTH_SECRET,
+  secret: process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET || "b7e2c9f1a3d5486c8e5f0b2d4a6c7e9f1a3b5c7d8e9f0a2b4c6d8e0f2a4b6c8d9e",
   trustHost: true,
   providers: [],
 };
