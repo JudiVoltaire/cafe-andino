@@ -3,6 +3,8 @@
 /dev.db-journal
 prisma/dev.db
 prisma/dev.db-journal
+prisma/backup-*.db
+prisma/*.db
 
 # dependencies
 /node_modules
