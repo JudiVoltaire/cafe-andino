@@ -85,7 +85,19 @@ export const vi = {
     "occupied": "Đang dùng",
     "tableFree": "Trống",
     "orderedItems": "Món đã gọi",
-    "selectedCount": "Đã chọn"
+    "selectedCount": "Đã chọn",
+    "mergeTarget": "Bàn chính (đích đến)",
+    "mergeSource": "Bàn gộp vào",
+    "mergeConfirm": "Xác nhận gộp bàn",
+    "mergeConfirmDesc": "Các món sẽ được gộp vào bàn chính và các bàn phụ sẽ được giải phóng.",
+    "mergeSuccess": "Đã gộp bàn thành công!",
+    "splitToTable": "Chuyển sang bàn khác",
+    "splitToSubAccount": "Tách hóa đơn cùng bàn",
+    "splitSelectTable": "Chọn bàn đích",
+    "splitNoEmpty": "Không có bàn trống trong khu vực này",
+    "splitSameTableDesc": "Tạo hóa đơn con (Bàn A, Bàn B) để thanh toán riêng.",
+    "splitSummaryCurrent": "Bàn hiện tại giữ lại",
+    "splitSummaryNew": "Hóa đơn mới nhận"
   },
   "inventory": {
     "title": "Quản lý Kho",

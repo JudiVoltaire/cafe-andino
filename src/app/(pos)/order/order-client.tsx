@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition, useCallback, useEffect } from "react";
+import { useState, useTransition, useCallback, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { useI18n } from "@/i18n/context";
@@ -10,14 +10,16 @@ import {
   Users, Clock, Send, Printer, Merge, Split,
   Plus, Minus, ShoppingCart, X, ArrowLeft,
   UtensilsCrossed, Flame, Banknote, CheckCircle, Bluetooth, BluetoothConnected, BluetoothOff,
-  XCircle,
+  XCircle, Crown, Check,
 } from "lucide-react";
 import {
   openTable, addItem, updateItemQuantity, removeItem, cancelItem,
-  sendOrder, mergeTables, splitItems, splitItemsEvenly, getOrder, printTempBill, checkoutOrder, updateOrderGuest, refreshKaraokeTime,
+  sendOrder, mergeTables, splitOrder, getOrder, printTempBill, checkoutOrder, updateOrderGuest, refreshKaraokeTime,
   cancelOrder,
 } from "@/server/order/actions";
 import { useBluetoothPrinter } from "@/hooks/use-bluetooth-printer";
+import { MergeConfirmModal } from "./merge-confirm-modal";
+import { SplitOrderModal } from "./split-order-modal";
 
 type Area = {
   id: string; name: string; type: string;
@@ -37,144 +39,238 @@ type OrderDetail = Awaited<ReturnType<typeof getOrder>>;
 function fmt(v: number) { return new Intl.NumberFormat("es-BO").format(v); }
 
 // ─── Table Grid View ────────────────────────────────────────────
+// ─── Table Grid View ────────────────────────────────────────────
 export function TableGridView({
   areas, activeAreaId, setActiveAreaId, onOpenTable, onSelectOrder,
-  onMergeTables, onSplitTable,
+  onMergeTables, onSplitTable, initialMergeTableId, onClearInitialMergeTable,
 }: {
   areas: Area[]; activeAreaId: string; setActiveAreaId: (id: string) => void;
   onOpenTable: (t: TableInfo) => void; onSelectOrder: (orderId: string) => void;
   onMergeTables: (orderIds: string[], targetTableId: string) => Promise<any>;
   onSplitTable: (orderId: string) => void;
+  initialMergeTableId?: string | null;
+  onClearInitialMergeTable?: () => void;
 }) {
   const { t } = useI18n();
   const { isMobile, isTablet, isDesktop } = useDeviceInfo();
   const [pending, start] = useTransition();
-  const [mergeMode, setMergeMode] = useState(false);
+  const [mergeMode, setMergeMode] = useState(!!initialMergeTableId);
   const [splitMode, setSplitMode] = useState(false);
-  const [selectedTables, setSelectedTables] = useState<Set<string>>(new Set());
+  const [selectedTables, setSelectedTables] = useState<Set<string>>(
+    initialMergeTableId ? new Set([initialMergeTableId]) : new Set()
+  );
+  const [targetTableId, setTargetTableId] = useState<string | null>(initialMergeTableId || null);
+  const [showMergeConfirm, setShowMergeConfirm] = useState(false);
+
   const activeArea = areas.find(a => a.id === activeAreaId)!;
-  const occupied = activeArea.tables.filter(t => t.orders.length > 0).length;
+  const occupied = activeArea.tables.filter(t => t.orders.length > 0 && (t.orders[0].status === "OPEN" || t.orders[0].status === "SENT")).length;
+
+  useEffect(() => {
+    if (initialMergeTableId) {
+      setMergeMode(true);
+      setSplitMode(false);
+      setSelectedTables(new Set([initialMergeTableId]));
+      setTargetTableId(initialMergeTableId);
+      onClearInitialMergeTable?.();
+    }
+  }, [initialMergeTableId, onClearInitialMergeTable]);
 
   function toggleMerge() {
-    setMergeMode(!mergeMode);
+    const next = !mergeMode;
+    setMergeMode(next);
     setSplitMode(false);
     setSelectedTables(new Set());
-  }
-  function toggleSplit() {
-    setSplitMode(!splitMode);
-    setMergeMode(false);
-    setSelectedTables(new Set());
-  }
-  function toggleTable(tableId: string) {
-    setSelectedTables(p => { const n = new Set(p); n.has(tableId) ? n.delete(tableId) : n.add(tableId); return n; });
+    setTargetTableId(null);
   }
 
-  function confirmMerge() {
-    const tableIds = Array.from(selectedTables);
-    if (tableIds.length < 2) { toast.error(t.order.mergeTablePrompt); return; }
-    start(async () => {
-      const targetTableId = tableIds[0];
-      const sourceOrderIds: string[] = [];
-      for (const tid of tableIds.slice(1)) {
-        const tbl = activeArea.tables.find(tb => tb.id === tid);
-        const oid = tbl?.orders[0]?.id;
-        if (oid) sourceOrderIds.push(oid);
+  function toggleSplit() {
+    const next = !splitMode;
+    setSplitMode(next);
+    setMergeMode(false);
+    setSelectedTables(new Set());
+    setTargetTableId(null);
+  }
+
+  function toggleTable(tableId: string) {
+    if (mergeMode) {
+      setSelectedTables(prev => {
+        const next = new Set(prev);
+        if (next.has(tableId)) {
+          next.delete(tableId);
+          if (targetTableId === tableId) {
+            const remaining = Array.from(next);
+            setTargetTableId(remaining[0] || null);
+          }
+        } else {
+          next.add(tableId);
+          if (!targetTableId) {
+            setTargetTableId(tableId);
+          }
+        }
+        return next;
+      });
+    } else if (splitMode) {
+      const tbl = activeArea.tables.find(tb => tb.id === tableId);
+      const order = tbl?.orders[0];
+      if (order) {
+        onSplitTable(order.id);
+        setSplitMode(false);
       }
-      await mergeTables(sourceOrderIds, targetTableId);
-      toast.success(t.order.mergeTables + "!");
-      setMergeMode(false); setSelectedTables(new Set());
+    }
+  }
+
+  async function handleConfirmMergeExecution(sourceOrderIds: string[], targetTid: string) {
+    start(async () => {
+      try {
+        await onMergeTables(sourceOrderIds, targetTid);
+        toast.success(t.order.mergeSuccess || "¡Mesas unidas con éxito!");
+        setShowMergeConfirm(false);
+        setMergeMode(false);
+        setSelectedTables(new Set());
+        setTargetTableId(null);
+      } catch (err: any) {
+        toast.error("Error al unir mesas: " + (err?.message || "Error desconocido"));
+      }
     });
   }
 
-  const hasOrders = activeArea.tables.filter(t => t.orders.length > 0 && (t.orders[0].status === "OPEN" || t.orders[0].status === "SENT"));
-
   // Responsive grid: mobile 3 cols, tablet 4, desktop 8/10
   const gridCols = isMobile ? "grid-cols-3" : isTablet ? "grid-cols-4" : "grid-cols-4 sm:grid-cols-5 md:grid-cols-6 lg:grid-cols-8 xl:grid-cols-10";
-  const cardPadding = isMobile ? "p-2.5" : "p-4";
-  const gapSize = isMobile ? "gap-2" : "gap-4";
+  const cardPadding = isMobile ? "p-2.5" : "p-3.5";
+  const gapSize = isMobile ? "gap-2" : "gap-3.5";
 
   return (
     <div className="flex flex-col h-full">
       {/* Area tabs + buttons */}
       <div className={`${isMobile ? "px-3 py-2 gap-1.5" : "px-6 py-3 gap-2"} flex items-center overflow-x-auto shrink-0 border-b border-gray-200 bg-white`}>
         {areas.map(a => (
-          <button key={a.id} onClick={() => { setActiveAreaId(a.id); setMergeMode(false); setSplitMode(false); setSelectedTables(new Set()); }}
+          <button
+            key={a.id}
+            onClick={() => {
+              setActiveAreaId(a.id);
+              setMergeMode(false);
+              setSplitMode(false);
+              setSelectedTables(new Set());
+              setTargetTableId(null);
+            }}
             className={`${isMobile ? "px-3 py-1.5 text-xs" : "px-5 py-2 text-sm"} rounded-full font-semibold whitespace-nowrap transition-all active:scale-95 ${
-              activeAreaId === a.id ? "bg-amber-500 text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-            }`}>
+              activeAreaId === a.id ? "bg-amber-500 text-white shadow-xs" : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+            }`}
+          >
             {a.name}
           </button>
         ))}
-        {/* Desktop: Gộp/Tách buttons in top bar */}
+
+        {/* Desktop: Unir / Dividir buttons */}
         {!isMobile && (
-          <>
-            <div className="flex-1" />
-            <button onClick={toggleMerge} className={`px-4 py-2 text-sm rounded-full font-semibold transition-all flex items-center gap-1 ${
-              mergeMode ? "bg-blue-500 text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-            }`}><Merge className="h-4 w-4" /> {t.order.merge}</button>
-            <button onClick={toggleSplit} className={`px-4 py-2 text-sm rounded-full font-semibold transition-all flex items-center gap-1 ${
-              splitMode ? "bg-purple-500 text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-            }`}><Split className="h-4 w-4" /> {t.order.split}</button>
-          </>
+          <div className="flex items-center gap-2 ml-auto">
+            <button
+              onClick={toggleMerge}
+              className={`px-4 py-2 text-sm rounded-full font-bold transition-all flex items-center gap-1.5 shadow-xs ${
+                mergeMode
+                  ? "bg-blue-600 text-white ring-2 ring-blue-300"
+                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+              }`}
+            >
+              <Merge className="h-4 w-4" />
+              {t.order.merge}
+            </button>
+            <button
+              onClick={toggleSplit}
+              className={`px-4 py-2 text-sm rounded-full font-bold transition-all flex items-center gap-1.5 shadow-xs ${
+                splitMode
+                  ? "bg-purple-600 text-white ring-2 ring-purple-300"
+                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+              }`}
+            >
+              <Split className="h-4 w-4" />
+              {t.order.split}
+            </button>
+          </div>
         )}
       </div>
 
-      {/* Mobile: Mode banner + action bar ở dưới Bsầu trang */}
-      {isMobile && (mergeMode || splitMode) && (
-        <div className="px-3 py-2 text-xs flex items-center gap-2 shrink-0 bg-blue-50 border-b border-blue-200">
-          <span className="font-semibold text-blue-700">{mergeMode ? t.order.mergeTablePrompt : t.order.splitTablePrompt}</span>
-          <span className="text-xs text-blue-600">{selectedTables.size} {t.order.selectedCount}</span>
-          <div className="flex-1" />
-          <button onClick={() => { setMergeMode(false); setSplitMode(false); setSelectedTables(new Set()); }}
-            className="px-3 py-1 rounded-lg text-xs font-medium text-blue-600 hover:bg-blue-100 touch-manipulation">{t.order.cancel}</button>
-          <button onClick={() => {
-            if (mergeMode) confirmMerge();
-            else if (selectedTables.size === 1) {
-              const tbl = activeArea.tables.find(tb => tb.id === Array.from(selectedTables)[0]);
-              const orderId = tbl?.orders[0]?.id;
-              if (orderId) onSplitTable(orderId);
-            } else toast.error(t.order.splitTablePrompt);
-          }}
-            disabled={pending || selectedTables.size < (mergeMode ? 2 : 1)}
-            className={`px-3 py-1.5 rounded-lg text-xs font-bold text-white transition-all disabled:opacity-40 touch-manipulation ${
-              mergeMode ? "bg-blue-500 hover:bg-blue-600" : "bg-purple-500 hover:bg-purple-600"
-            }`}>
-            {mergeMode ? `${t.order.confirm} ${t.order.merge.toLowerCase()}` : t.order.selectItems}
-          </button>
+      {/* Mode Banner: Merge Mode */}
+      {mergeMode && (
+        <div className="px-3 sm:px-6 py-2.5 text-xs sm:text-sm flex flex-wrap items-center gap-2 sm:gap-3 shrink-0 bg-blue-50 border-b border-blue-200 shadow-2xs">
+          <div className="flex items-center gap-2">
+            <div className="w-6 h-6 rounded-lg bg-blue-600 text-white flex items-center justify-center font-bold text-xs shrink-0">
+              <Merge className="h-3.5 w-3.5" />
+            </div>
+            <span className="font-bold text-blue-950">
+              {selectedTables.size === 0
+                ? "Paso 1: Toca la mesa principal (receptora)"
+                : selectedTables.size === 1
+                ? `Mesa principal: ${activeArea.tables.find(t => t.id === targetTableId)?.name || ""}. Ahora toca las mesas que se unirán a ella:`
+                : `Uniendo ${selectedTables.size} mesas en ${activeArea.tables.find(t => t.id === targetTableId)?.name || ""}:`}
+            </span>
+          </div>
+
+          <div className="flex items-center gap-2 ml-auto">
+            <span className="bg-blue-200/80 text-blue-900 px-2 py-0.5 rounded-full text-[11px] font-bold">
+              {selectedTables.size} {t.order.selectedCount}
+            </span>
+            <button
+              onClick={() => {
+                setMergeMode(false);
+                setSelectedTables(new Set());
+                setTargetTableId(null);
+              }}
+              className="px-2.5 py-1 rounded-lg text-xs font-semibold text-gray-600 hover:bg-blue-100 transition-colors"
+            >
+              {t.order.cancel}
+            </button>
+            <button
+              onClick={() => {
+                if (selectedTables.size < 2) {
+                  toast.error("Selecciona al menos 2 mesas para unir (una principal y una secundaria)");
+                  return;
+                }
+                setShowMergeConfirm(true);
+              }}
+              disabled={selectedTables.size < 2 || pending}
+              className="px-3.5 py-1.5 rounded-lg text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-40 shadow-xs transition-all active:scale-95 flex items-center gap-1.5"
+            >
+              <Merge className="h-3.5 w-3.5" />
+              Revisar y Unir ({selectedTables.size})
+            </button>
+          </div>
         </div>
       )}
 
-      {/* Desktop: Mode banner */}
-      {!isMobile && (mergeMode || splitMode) && (
-        <div className="px-6 py-2 text-sm flex items-center gap-3 shrink-0 bg-blue-50 border-b border-blue-200">
-          <span className="font-semibold text-blue-700">{mergeMode ? t.order.mergeTablePrompt : t.order.splitTablePrompt}</span>
-          <span className="text-xs text-blue-600">{selectedTables.size} {t.order.selectedCount}</span>
-          <div className="flex-1" />
-          <button onClick={() => { setMergeMode(false); setSplitMode(false); setSelectedTables(new Set()); }}
-            className="px-3 py-1 rounded-lg text-xs font-medium text-blue-600 hover:bg-blue-100">{t.order.cancel}</button>
-          <button onClick={() => {
-            if (mergeMode) confirmMerge();
-            else if (selectedTables.size === 1) {
-              const tbl = activeArea.tables.find(tb => tb.id === Array.from(selectedTables)[0]);
-              const orderId = tbl?.orders[0]?.id;
-              if (orderId) onSplitTable(orderId);
-            } else toast.error(t.order.splitTablePrompt);
-          }}
-            disabled={pending || selectedTables.size < (mergeMode ? 2 : 1)}
-            className={`px-4 py-1.5 rounded-lg text-xs font-bold text-white transition-all disabled:opacity-40 ${
-              mergeMode ? "bg-blue-500 hover:bg-blue-600" : "bg-purple-500 hover:bg-purple-600"
-            }`}>
-            {mergeMode ? `${t.order.confirm} ${t.order.merge.toLowerCase()}` : t.order.selectItems}
+      {/* Mode Banner: Split Mode */}
+      {splitMode && (
+        <div className="px-3 sm:px-6 py-2.5 text-xs sm:text-sm flex items-center justify-between gap-2 shrink-0 bg-purple-50 border-b border-purple-200 shadow-2xs">
+          <div className="flex items-center gap-2">
+            <div className="w-6 h-6 rounded-lg bg-purple-600 text-white flex items-center justify-center font-bold text-xs shrink-0">
+              <Split className="h-3.5 w-3.5" />
+            </div>
+            <span className="font-bold text-purple-950">
+              Modo Dividir: Toca cualquier mesa ocupada para dividir sus ítems o cuenta
+            </span>
+          </div>
+
+          <button
+            onClick={() => setSplitMode(false)}
+            className="px-2.5 py-1 rounded-lg text-xs font-semibold text-gray-600 hover:bg-purple-100 transition-colors"
+          >
+            {t.order.cancel}
           </button>
         </div>
       )}
 
       {/* Legend */}
-      {!isMobile && (
-        <div className="px-6 py-2 flex items-center gap-6 text-xs font-medium text-gray-500 bg-gray-50 border-b border-gray-200 shrink-0">
-          <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-emerald-400" /> {t.order.tableFree}</span>
-          <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-amber-400" /> {t.order.occupied}</span>
-          <span className="text-gray-400">{occupied}/{activeArea.tables.length} {t.order.occupied}</span>
+      {!isMobile && !mergeMode && !splitMode && (
+        <div className="px-6 py-2 flex items-center gap-6 text-xs font-medium text-gray-500 bg-gray-50/70 border-b border-gray-200 shrink-0">
+          <span className="flex items-center gap-1.5">
+            <span className="w-2.5 h-2.5 rounded-full bg-emerald-500" /> {t.order.tableFree}
+          </span>
+          <span className="flex items-center gap-1.5">
+            <span className="w-2.5 h-2.5 rounded-full bg-amber-500" /> {t.order.occupied}
+          </span>
+          <span className="text-gray-400 font-mono">
+            {occupied}/{activeArea.tables.length} {t.order.occupied}
+          </span>
         </div>
       )}
 
@@ -185,46 +281,109 @@ export function TableGridView({
             const hasOrder = table.orders.length > 0 && (table.orders[0].status === "OPEN" || table.orders[0].status === "SENT");
             const order = table.orders[0];
             const isSelected = selectedTables.has(table.id);
-            const inMode = mergeMode || splitMode;
-            const disabled = inMode && mergeMode ? !hasOrder : inMode && splitMode ? (!hasOrder || (selectedTables.size === 1 && !isSelected)) : false;
+            const isTarget = table.id === targetTableId;
+
+            // Compute styling and badges dynamically for total clarity
+            let cardClasses = "";
+            let badge = null;
+            let disabled = false;
+
+            if (mergeMode) {
+              if (!hasOrder) {
+                disabled = true;
+                cardClasses = "opacity-30 border-gray-200 bg-gray-50 cursor-not-allowed";
+                badge = <span className="text-[10px] text-gray-400 font-medium">Sin pedido</span>;
+              } else if (isTarget) {
+                cardClasses = "bg-blue-100/90 border-blue-600 ring-2 ring-blue-400 shadow-sm";
+                badge = (
+                  <span className="text-[10px] font-extrabold text-blue-900 bg-blue-200 px-1.5 py-0.5 rounded flex items-center gap-1">
+                    <Crown className="h-3 w-3 fill-blue-700 text-blue-700" /> Destino
+                  </span>
+                );
+              } else if (isSelected) {
+                cardClasses = "bg-amber-100/90 border-amber-500 ring-2 ring-amber-300 shadow-xs";
+                badge = (
+                  <span className="text-[10px] font-extrabold text-amber-900 bg-amber-200 px-1.5 py-0.5 rounded flex items-center gap-0.5">
+                    + A unir
+                  </span>
+                );
+              } else {
+                cardClasses = "bg-amber-50 border-amber-300 hover:border-blue-400 hover:bg-blue-50/50 cursor-pointer";
+                badge = <span className="text-[10px] text-amber-700 font-semibold">Toca para unir</span>;
+              }
+            } else if (splitMode) {
+              if (!hasOrder) {
+                disabled = true;
+                cardClasses = "opacity-30 border-gray-200 bg-gray-50 cursor-not-allowed";
+                badge = <span className="text-[10px] text-gray-400 font-medium">Libre</span>;
+              } else {
+                cardClasses = "bg-purple-50/90 border-purple-500 hover:bg-purple-100 ring-2 ring-purple-300 shadow-xs cursor-pointer";
+                badge = (
+                  <span className="text-[10px] font-extrabold text-purple-900 bg-purple-200 px-1.5 py-0.5 rounded flex items-center gap-0.5">
+                    <Split className="h-3 w-3" /> Toca para dividir
+                  </span>
+                );
+              }
+            } else {
+              // Normal mode
+              if (hasOrder) {
+                cardClasses = "bg-amber-50/90 border-amber-300 hover:border-amber-400 hover:shadow-xs";
+              } else {
+                cardClasses = "bg-emerald-50/80 border-emerald-200 hover:border-emerald-300 hover:shadow-xs";
+              }
+            }
 
             return (
-              <button key={table.id} disabled={disabled}
+              <button
+                key={table.id}
+                disabled={disabled}
                 onClick={() => {
-                  if (mergeMode) { if (hasOrder) toggleTable(table.id); }
-                  else if (splitMode) { if (hasOrder && selectedTables.size === 0) { toggleTable(table.id); } }
-                  else { hasOrder ? onSelectOrder(order.id) : onOpenTable(table); }
+                  if (mergeMode) {
+                    if (hasOrder) toggleTable(table.id);
+                  } else if (splitMode) {
+                    if (hasOrder) toggleTable(table.id);
+                  } else {
+                    hasOrder ? onSelectOrder(order.id) : onOpenTable(table);
+                  }
                 }}
-                className={`rounded-xl ${cardPadding} flex flex-col gap-1 transition-all active:scale-95 cursor-pointer border-2 text-left min-h-[${isMobile ? "64px" : "88px"}] justify-center ${
-                  disabled ? "opacity-30 cursor-not-allowed" : ""
-                } ${
-                  inMode && isSelected ? "bg-blue-100 border-blue-500 ring-2 ring-blue-300" :
-                  inMode && hasOrder && !isSelected ? "bg-amber-50 border-amber-300 hover:border-blue-400" :
-                  hasOrder ? "bg-amber-50 border-amber-300" : "bg-emerald-50 border-emerald-200"
-                }`}>
+                className={`rounded-xl ${cardPadding} flex flex-col gap-1 transition-all active:scale-95 text-left border-2 min-h-[${isMobile ? "68px" : "90px"}] justify-center ${cardClasses}`}
+              >
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <span className={`${isMobile ? "text-xs" : "text-sm"} font-extrabold ${hasOrder ? "text-amber-800" : "text-emerald-800"}`}>{table.name}</span>
-                    {hasOrder && order && (
-                      <span className="text-[10px] font-semibold text-amber-600 flex items-center gap-0.5">
-                        <Clock className="h-2.5 w-2.5" />{Math.round((Date.now() - new Date(order.openedAt).getTime()) / 60000)}&apos;
+                  <div className="flex items-center gap-1.5 truncate">
+                    <span className={`${isMobile ? "text-xs" : "text-sm"} font-extrabold ${hasOrder ? "text-amber-900" : "text-emerald-900"}`}>
+                      {table.name}
+                    </span>
+                    {hasOrder && order && !mergeMode && !splitMode && (
+                      <span className="text-[10px] font-semibold text-amber-700 flex items-center gap-0.5 shrink-0">
+                        <Clock className="h-2.5 w-2.5" />
+                        {Math.round((Date.now() - new Date(order.openedAt).getTime()) / 60000)}&apos;
                       </span>
                     )}
                   </div>
-                  <div className="flex items-center gap-1">
-                    {order?.status === "SENT" && !inMode && <Flame className="h-3.5 w-3.5 text-orange-500" />}
-                    {inMode && <span className={`w-4 h-4 rounded border-2 flex items-center justify-center text-[10px] ${isSelected ? "bg-blue-500 border-blue-500 text-white" : "border-gray-300"}`}>{isSelected ? "✓" : ""}</span>}
+
+                  <div className="shrink-0">
+                    {badge ? (
+                      badge
+                    ) : order?.status === "SENT" ? (
+                      <Flame className="h-3.5 w-3.5 text-orange-500" />
+                    ) : null}
                   </div>
                 </div>
+
                 {hasOrder && order ? (
                   <>
                     <span className="text-[11px] font-mono font-bold text-amber-800">
-                      #{String(order.orderNumber).padStart(8, "0")}{order.orderNumberSuffix ? `-${order.orderNumberSuffix}` : ""}
+                      #{String(order.orderNumber).padStart(8, "0")}
+                      {order.orderNumberSuffix ? `-${order.orderNumberSuffix}` : ""}
                     </span>
-                    <span className={`${isMobile ? "text-[10px]" : "text-xs"} font-bold text-amber-600`}>{fmt(order.totalAmount ?? 0)}Bs</span>
+                    <span className={`${isMobile ? "text-[10px]" : "text-xs"} font-extrabold text-amber-700`}>
+                      {fmt(order.totalAmount ?? 0)}Bs
+                    </span>
                   </>
                 ) : (
-                  <span className="text-[10px] font-medium text-emerald-700">{table.capacity} {isMobile ? "" : t.order.seats}</span>
+                  <span className="text-[10px] font-medium text-emerald-700">
+                    {table.capacity} {isMobile ? "" : t.order.seats}
+                  </span>
                 )}
               </button>
             );
@@ -232,25 +391,37 @@ export function TableGridView({
         </div>
       </div>
 
-      {/* Mobile: Fixed bottom action bar — Gộp/Tách */}
-      {isMobile && (
-        <div className="fixed bottom-14 left-0 right-0 z-30 px-2 pb-2 pt-0" style={{ paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 8px)" }}>
-          <div className="flex gap-2 bg-white rounded-2xl shadow-lg border border-gray-200 px-3 py-2">
-            <button onClick={toggleMerge}
-              className={`flex-1 py-2.5 rounded-xl font-bold text-sm flex items-center justify-center gap-1.5 active:scale-95 transition-all touch-manipulation ${
-                mergeMode ? "bg-blue-500 text-white" : "bg-gray-100 text-gray-600"
-              }`}>
+      {/* Mobile: Fixed bottom action bar — Unir / Dividir */}
+      {isMobile && !mergeMode && !splitMode && (
+        <div className="fixed bottom-14 left-0 right-0 z-30 px-3 pb-2 pt-0" style={{ paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 8px)" }}>
+          <div className="flex gap-2 bg-white rounded-2xl shadow-xl border border-gray-200 px-3 py-2">
+            <button
+              onClick={toggleMerge}
+              className="flex-1 py-2.5 rounded-xl font-bold text-sm flex items-center justify-center gap-1.5 bg-blue-50 text-blue-700 active:scale-95 transition-all touch-manipulation border border-blue-200"
+            >
               <Merge className="h-4 w-4" /> {t.order.merge}
             </button>
-            <button onClick={toggleSplit}
-              className={`flex-1 py-2.5 rounded-xl font-bold text-sm flex items-center justify-center gap-1.5 active:scale-95 transition-all touch-manipulation ${
-                splitMode ? "bg-purple-500 text-white" : "bg-gray-100 text-gray-600"
-              }`}>
+            <button
+              onClick={toggleSplit}
+              className="flex-1 py-2.5 rounded-xl font-bold text-sm flex items-center justify-center gap-1.5 bg-purple-50 text-purple-700 active:scale-95 transition-all touch-manipulation border border-purple-200"
+            >
               <Split className="h-4 w-4" /> {t.order.split}
             </button>
           </div>
         </div>
       )}
+
+      {/* Modal: Confirm Merge Dialog */}
+      <MergeConfirmModal
+        open={showMergeConfirm}
+        onClose={() => setShowMergeConfirm(false)}
+        targetTableId={targetTableId}
+        selectedTableIds={Array.from(selectedTables)}
+        tables={activeArea.tables}
+        onConfirm={handleConfirmMergeExecution}
+        onChangeTargetTable={newTid => setTargetTableId(newTid)}
+        pending={pending}
+      />
     </div>
   );
 }
@@ -632,16 +803,25 @@ export function OrderClient({ areas, categories }: { areas: Area[]; categories: 
   const [toppingProduct, setToppingProduct] = useState<ProductInfo | null>(null);
   const [toppingSelections, setToppingSelections] = useState<Record<string, boolean>>({});
 
-  // Dialogs
+  // Dialogs & Modes
   const [checkoutDialog, setCheckoutDialog] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState("CASH");
   const [paymentAmount, setPaymentAmount] = useState("");
   const [mobileCheckoutPending, setMobileCheckoutPending] = useState(false);
-  const [splitDialog, setSplitDialog] = useState(false);
-  const [splitTableId, setSplitTableId] = useState("");
-  const [selectedItemIds, setSelectedItemIds] = useState<Set<string>>(new Set());
+  const [initialMergeTableId, setInitialMergeTableId] = useState<string | null>(null);
+  const [splitModalOpen, setSplitModalOpen] = useState(false);
+  const [splitTargetOrderDetail, setSplitTargetOrderDetail] = useState<OrderDetail | null>(null);
 
   const activeArea = areas.find(a => a.id === activeAreaId);
+
+  const availableEmptyTables = useMemo(() => {
+    const currentTableId = splitTargetOrderDetail?.table?.id;
+    const currentArea = areas.find(a => a.id === activeAreaId) || areas[0];
+    if (!currentArea) return [];
+    return currentArea.tables
+      .filter(t => t.id !== currentTableId && (!t.orders || t.orders.length === 0 || !t.orders.some(o => o.status === "OPEN" || o.status === "SENT")))
+      .map(t => ({ id: t.id, name: t.name, capacity: t.capacity }));
+  }, [areas, activeAreaId, splitTargetOrderDetail]);
 
   // Bluetooth printer
   const bt = useBluetoothPrinter();
@@ -721,20 +901,40 @@ export function OrderClient({ areas, categories }: { areas: Area[]; categories: 
     setRefreshKey(k => k + 1);
     router.refresh();
   }
-  // Tách từ màn bàn
+  // Tách bàn / cuenta
   async function handleSplitTable(orderId: string) {
-    const detail = await getOrder(orderId);
-    setOrderDetail(detail);
-    setSplitTableId(orderId);
-    setSelectedItemIds(new Set());
-    setSplitDialog(true);
+    try {
+      const detail = await getOrder(orderId);
+      if (!detail) {
+        toast.error("No se encontró el detalle de la orden");
+        return;
+      }
+      setSplitTargetOrderDetail(detail);
+      setSplitModalOpen(true);
+    } catch (err: any) {
+      toast.error("Error al cargar orden para dividir: " + (err?.message || "Error"));
+    }
   }
-  async function confirmSplit() {
-    if (selectedItemIds.size === 0 || !splitTableId) { toast.error(t.order.selectItems); return; }
+
+  async function handleConfirmSplit(payload: {
+    sourceOrderId: string;
+    targetTableId?: string | null;
+    items: { orderItemId: string; quantity: number }[];
+  }) {
     start(async () => {
-      await splitItemsEvenly(splitTableId, Array.from(selectedItemIds));
-      toast.success(t.order.split + "!");
-      setSplitDialog(false); setRefreshKey(k => k + 1); router.refresh();
+      try {
+        await splitOrder(payload);
+        toast.success("¡Cuenta / mesa dividida con éxito!");
+        setSplitModalOpen(false);
+        setSplitTargetOrderDetail(null);
+        if (activeOrderId === payload.sourceOrderId) {
+          await refreshOrder();
+        }
+        setRefreshKey(k => k + 1);
+        router.refresh();
+      } catch (err: any) {
+        toast.error("Error al dividir orden: " + (err?.message || "Error desconocido"));
+      }
     });
   }
 
@@ -838,18 +1038,51 @@ export function OrderClient({ areas, categories }: { areas: Area[]; categories: 
   return (
     <div className="h-full overflow-hidden">
       {view === "tables" && areas.length > 0 && (
-        <TableGridView areas={areas} activeAreaId={activeAreaId} setActiveAreaId={setActiveAreaId}
-          onOpenTable={handleOpenTable} onSelectOrder={handleSelectOrder}
-          onMergeTables={handleMergeTables} onSplitTable={handleSplitTable} />
+        <TableGridView
+          areas={areas}
+          activeAreaId={activeAreaId}
+          setActiveAreaId={setActiveAreaId}
+          onOpenTable={handleOpenTable}
+          onSelectOrder={handleSelectOrder}
+          onMergeTables={handleMergeTables}
+          onSplitTable={handleSplitTable}
+          initialMergeTableId={initialMergeTableId}
+          onClearInitialMergeTable={() => setInitialMergeTableId(null)}
+        />
       )}
 
       {view === "order" && orderDetail && (
-        <OrderDetailView orderDetail={orderDetail} categories={categories} onBack={handleBack}
-          onSend={handleSend} onTempBill={handleTempBill} onCheckout={handleCheckout} onMerge={() => handleBack()} onSplit={() => handleBack()}
-          onAddItem={handleAddItem} onUpdateQty={handleUpdateQty} onRemoveItem={handleRemoveItem}
-          onCancelItem={handleCancelItem} onCancelOrder={handleCancelOrder} pending={pending} onGuestChange={handleGuestChange}
+        <OrderDetailView
+          orderDetail={orderDetail}
+          categories={categories}
+          onBack={handleBack}
+          onSend={handleSend}
+          onTempBill={handleTempBill}
+          onCheckout={handleCheckout}
+          onMerge={() => {
+            const tid = (orderDetail as any).tableId || orderDetail.table?.id;
+            if (tid) {
+              setInitialMergeTableId(tid);
+              setView("tables");
+              setActiveOrderId(null);
+              setOrderDetail(null);
+            }
+          }}
+          onSplit={() => {
+            if (activeOrderId) {
+              handleSplitTable(activeOrderId);
+            }
+          }}
+          onAddItem={handleAddItem}
+          onUpdateQty={handleUpdateQty}
+          onRemoveItem={handleRemoveItem}
+          onCancelItem={handleCancelItem}
+          onCancelOrder={handleCancelOrder}
+          pending={pending}
+          onGuestChange={handleGuestChange}
           btState={{ connected: bt.connected, connecting: bt.connecting, error: bt.error }}
-          onBtConnect={bt.connect} onBtDisconnect={bt.disconnect}
+          onBtConnect={bt.connect}
+          onBtDisconnect={bt.disconnect}
           onMobileCheckout={handleMobileCheckout}
           mobileCheckoutPending={mobileCheckoutPending}
         />
@@ -905,20 +1138,19 @@ export function OrderClient({ areas, categories }: { areas: Area[]; categories: 
         </div>
       </MobileSheet>}
 
-      {splitDialog && <MobileSheet open={splitDialog} onClose={() => setSplitDialog(false)} title={t.order.splitTable}>
-        <p className="text-sm text-gray-500 mb-3">{t.order.selectItems}</p>
-        <div className="space-y-1 max-h-40 overflow-y-auto mb-4">
-          {orderDetail?.items.filter(i => i.status !== "CANCELLED").map(item => (
-            <label key={item.id} className="flex items-center gap-3 p-2.5 rounded-lg border border-gray-200 cursor-pointer has-[:checked]:border-purple-500 has-[:checked]:bg-purple-50">
-              <input type="checkbox" className="h-4 w-4 accent-purple-500" checked={selectedItemIds.has(item.id)} onChange={() => setSelectedItemIds(p => { const n = new Set(p); n.has(item.id) ? n.delete(item.id) : n.add(item.id); return n; })} />
-              <span className="text-sm flex-1">{item.product.name} x{item.quantity}</span>
-              <span className="text-xs font-mono">{fmt(item.unitPrice * item.quantity)}Bs</span></label>
-          ))}</div>
-        <div className="flex gap-3">
-          <button onClick={() => setSplitDialog(false)} className="flex-1 h-11 rounded-lg border border-gray-200 font-medium text-sm text-gray-600">{t.order.cancel}</button>
-          <button onClick={confirmSplit} disabled={pending || selectedItemIds.size === 0} className="flex-1 h-11 rounded-lg bg-purple-500 text-white font-semibold text-sm">{t.order.split}</button>
-        </div>
-      </MobileSheet>}
+      <SplitOrderModal
+        open={splitModalOpen}
+        onClose={() => {
+          if (!pending) {
+            setSplitModalOpen(false);
+            setSplitTargetOrderDetail(null);
+          }
+        }}
+        orderDetail={splitTargetOrderDetail as any}
+        availableTables={availableEmptyTables}
+        onConfirmSplit={handleConfirmSplit}
+        pending={pending}
+      />
     </div>
   );
 }

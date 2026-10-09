@@ -85,7 +85,19 @@ export const en = {
     "occupied": "Occupied",
     "tableFree": "Free",
     "orderedItems": "Ordered Items",
-    "selectedCount": "Selected"
+    "selectedCount": "Selected",
+    "mergeTarget": "Primary table (target)",
+    "mergeSource": "Table to merge",
+    "mergeConfirm": "Confirm table merge",
+    "mergeConfirmDesc": "Orders will be merged into the primary table and secondary tables will be freed.",
+    "mergeSuccess": "Tables merged successfully!",
+    "splitToTable": "Move to another table",
+    "splitToSubAccount": "Sub-bill on same table",
+    "splitSelectTable": "Select destination table",
+    "splitNoEmpty": "No empty tables in this area",
+    "splitSameTableDesc": "Create a separate check (e.g. Check A, Check B) on this same table.",
+    "splitSummaryCurrent": "Current table keeps",
+    "splitSummaryNew": "New check receives"
   },
   "inventory": {
     "title": "Inventory Management",

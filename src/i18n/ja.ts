@@ -85,7 +85,19 @@ export const ja = {
     "occupied": "使用中",
     "tableFree": "空席",
     "orderedItems": "注文商品",
-    "selectedCount": "選択数"
+    "selectedCount": "選択数",
+    "mergeTarget": "メイン席（統合先）",
+    "mergeSource": "統合する席",
+    "mergeConfirm": "席の統合を確認",
+    "mergeConfirmDesc": "注文はメイン席にまとめられ、サブ席は空席になります。",
+    "mergeSuccess": "テーブルの結合が完了しました！",
+    "splitToTable": "別の席へ移動",
+    "splitToSubAccount": "同席で伝票分割",
+    "splitSelectTable": "移動先の席を選択",
+    "splitNoEmpty": "このエリアに空席はありません",
+    "splitSameTableDesc": "同じ席内で個別会計用の伝票（A、B）を作成します。",
+    "splitSummaryCurrent": "現在の席に残す",
+    "splitSummaryNew": "新しい伝票に移動"
   },
   "inventory": {
     "title": "在庫管理",

@@ -85,7 +85,19 @@ export const es = {
     "occupied": "Ocupada",
     "tableFree": "Libre",
     "orderedItems": "Ítems pedidos",
-    "selectedCount": "Seleccionados"
+    "selectedCount": "Seleccionados",
+    "mergeTarget": "Mesa principal (receptora)",
+    "mergeSource": "Mesa a fusionar",
+    "mergeConfirm": "Confirmar unión de mesas",
+    "mergeConfirmDesc": "Los pedidos se combinarán en la mesa receptora y las mesas secundarias quedarán libres.",
+    "mergeSuccess": "¡Mesas unidas con éxito!",
+    "splitToTable": "Mover a otra mesa",
+    "splitToSubAccount": "Sub-cuenta en la misma mesa",
+    "splitSelectTable": "Selecciona la mesa destino",
+    "splitNoEmpty": "No hay mesas vacías en este salón",
+    "splitSameTableDesc": "Crea una cuenta separada (ej. Cuenta A, Cuenta B) en esta misma mesa.",
+    "splitSummaryCurrent": "Mesa actual conserva",
+    "splitSummaryNew": "Nueva cuenta recibe"
   },
   "inventory": {
     "title": "Gestión de inventario",

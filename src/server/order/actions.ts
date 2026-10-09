@@ -5,6 +5,14 @@ import { revalidatePath, unstable_cache } from "next/cache";
 import { autoDeductStockForOrder } from "@/server/recipe/actions";
 import { isSystemModuleEnabled, getGeneralConfig } from "@/server/settings/actions";
 
+function safeRevalidatePath(path: string) {
+  try {
+    revalidatePath(path);
+  } catch {
+    // Gracefully handle calls outside of active Next.js request lifecycle (e.g. tests, scripts)
+  }
+}
+
 // ============ TABLE VIEW ============
 
 export async function getAreasWithTables() {
@@ -34,14 +42,14 @@ export async function getActiveAreasWithTables() {
 
 export async function updateOrderGuest(orderId: string, guestCount: number) {
   await db.order.update({ where: { id: orderId }, data: { guestCount } });
-  revalidatePath("/order");
+  safeRevalidatePath("/order");
 }
 
 // ============ KARAOKE REFRESH ============
 
 export async function refreshKaraokeTime(orderId: string) {
   await recalcOrder(orderId);
-  revalidatePath("/order");
+  safeRevalidatePath("/order");
 }
 
 // ============ ORDER CRUD ============
@@ -83,7 +91,7 @@ export async function openTable(tableId: string, guestCount: number = 1, orderTy
     }
   }
 
-  revalidatePath("/order");
+  safeRevalidatePath("/order");
   await recalcOrder(order.id);
   return order;
 }
@@ -115,7 +123,7 @@ export async function cancelOrder(orderId: string, reason?: string) {
     });
   }
 
-  revalidatePath("/order");
+  safeRevalidatePath("/order");
 }
 
 export async function getOrder(orderId: string) {
@@ -157,7 +165,7 @@ export async function addItem(orderId: string, productId: string, quantity: numb
   });
 
   await recalcOrder(orderId);
-  revalidatePath("/order");
+  safeRevalidatePath("/order");
   return item;
 }
 
@@ -165,7 +173,7 @@ export async function updateItemQuantity(itemId: string, quantity: number) {
   await db.orderItem.update({ where: { id: itemId }, data: { quantity } });
   const item = await db.orderItem.findUnique({ where: { id: itemId } });
   if (item) await recalcOrder(item.orderId);
-  revalidatePath("/order");
+  safeRevalidatePath("/order");
 }
 
 export async function removeItem(itemId: string) {
@@ -173,7 +181,7 @@ export async function removeItem(itemId: string) {
   if (!item) return;
   await db.orderItem.delete({ where: { id: itemId } });
   await recalcOrder(item.orderId);
-  revalidatePath("/order");
+  safeRevalidatePath("/order");
 }
 
 export async function cancelItem(itemId: string, userId: string, note?: string) {
@@ -184,7 +192,7 @@ export async function cancelItem(itemId: string, userId: string, note?: string) 
     data: { status: "CANCELLED", cancelledBy: userId, cancelledAt: new Date(), note: note || existing.note },
   });
   await recalcOrder(item.orderId);
-  revalidatePath("/order");
+  safeRevalidatePath("/order");
 }
 
 // ============ SEND ORDER ============
@@ -204,7 +212,7 @@ export async function sendOrder(orderId: string, areaId: string) {
   await db.order.update({ where: { id: orderId }, data: { status: "SENT" } });
 
   try { await printOrderTicket(orderId, areaId, "ORDER"); } catch (e) { console.error("Print error:", e); }
-  revalidatePath("/order");
+  safeRevalidatePath("/order");
 }
 
 // ============ MERGE / SPLIT ============
@@ -213,7 +221,7 @@ export async function mergeTables(orderIds: string[], targetTableId: string) {
   const targetOrder = await db.order.findFirst({
     where: { tableId: targetTableId, status: { in: ["OPEN", "SENT"] } },
   });
-  if (!targetOrder) throw new Error("Target order not found");
+  if (!targetOrder) throw new Error("Mesa destino no encontrada o no tiene una orden activa");
 
   const mergedIds: string[] = [];
   for (const orderId of orderIds) {
@@ -226,103 +234,160 @@ export async function mergeTables(orderIds: string[], targetTableId: string) {
     mergedIds.push(orderId);
   }
 
+  const existingMerged = targetOrder.mergedFrom ? JSON.parse(targetOrder.mergedFrom) : [];
+  const allMerged = [...new Set([...existingMerged, ...mergedIds])];
+
   await db.order.update({
     where: { id: targetOrder.id },
-    data: { mergedFrom: JSON.stringify(mergedIds) },
+    data: { mergedFrom: JSON.stringify(allMerged) },
   });
   await recalcOrder(targetOrder.id);
-  revalidatePath("/order");
+  safeRevalidatePath("/order");
+  return targetOrder;
 }
 
-export async function splitItems(orderId: string, itemIds: string[], newTableId: string) {
-  const originalOrder = await db.order.findUnique({
-    where: { id: orderId },
-    select: { orderNumber: true },
+export async function splitOrder(data: {
+  sourceOrderId: string;
+  targetTableId?: string | null;
+  items: {
+    orderItemId: string;
+    quantity: number;
+  }[];
+}) {
+  const sourceOrder = await db.order.findUnique({
+    where: { id: data.sourceOrderId },
+    include: {
+      table: true,
+      items: {
+        where: { status: { not: "CANCELLED" } },
+        include: { toppings: true },
+      },
+    },
   });
-  const existingSplits = await db.order.count({
-    where: { parentOrderId: orderId, status: "SPLIT" },
-  });
+  if (!sourceOrder) throw new Error("Orden de origen no encontrada");
+
+  const isSameTable = !data.targetTableId || data.targetTableId === sourceOrder.tableId;
+  const destTableId = isSameTable ? sourceOrder.tableId : data.targetTableId!;
+
+  let orderSuffix: string | null = null;
+  if (isSameTable) {
+    const siblings = await db.order.count({
+      where: {
+        tableId: sourceOrder.tableId,
+        status: { in: ["OPEN", "SENT"] },
+      },
+    });
+    if (!sourceOrder.orderNumberSuffix) {
+      await db.order.update({
+        where: { id: sourceOrder.id },
+        data: { orderNumberSuffix: "A" },
+      });
+    }
+    const letters = ["A", "B", "C", "D", "E", "F", "G", "H"];
+    orderSuffix = letters[siblings] || String(siblings + 1);
+  }
 
   const newOrder = await db.order.create({
     data: {
-      orderNumber: originalOrder?.orderNumber ?? 0,
-      orderNumberSuffix: String(existingSplits + 1),
-      tableId: newTableId,
+      orderNumber: sourceOrder.orderNumber,
+      orderNumberSuffix: orderSuffix,
+      tableId: destTableId,
       guestCount: 1,
-      status: "SPLIT",
-      parentOrderId: orderId,
-      splitFrom: orderId,
-      type: "NORMAL",
+      status: "OPEN",
+      parentOrderId: sourceOrder.id,
+      splitFrom: sourceOrder.id,
+      type: sourceOrder.type,
     },
   });
 
-  for (const itemId of itemIds) {
-    await db.orderItem.update({ where: { id: itemId }, data: { orderId: newOrder.id } });
+  for (const req of data.items) {
+    if (req.quantity <= 0) continue;
+    const item = sourceOrder.items.find(i => i.id === req.orderItemId);
+    if (!item) continue;
+
+    if (req.quantity >= item.quantity) {
+      // Transfer whole item
+      await db.orderItem.update({
+        where: { id: item.id },
+        data: { orderId: newOrder.id },
+      });
+    } else {
+      // Partial transfer: reduce original item quantity
+      const remainingQty = item.quantity - req.quantity;
+      await db.orderItem.update({
+        where: { id: item.id },
+        data: { quantity: remainingQty },
+      });
+
+      const newItem = await db.orderItem.create({
+        data: {
+          orderId: newOrder.id,
+          productId: item.productId,
+          quantity: req.quantity,
+          unitPrice: item.unitPrice,
+          note: item.note,
+          status: item.status,
+        },
+      });
+
+      for (const t of item.toppings) {
+        await db.orderItemTopping.create({
+          data: {
+            orderItemId: newItem.id,
+            toppingId: t.toppingId,
+            price: t.price,
+          },
+        });
+      }
+    }
   }
 
-  const remainingItems = await db.orderItem.findMany({
-    where: { orderId, status: { not: "CANCELLED" } },
+  // Check if source order has remaining active items
+  const remainingActiveItems = await db.orderItem.findMany({
+    where: { orderId: sourceOrder.id, status: { not: "CANCELLED" } },
   });
-  if (remainingItems.length === 0) {
+
+  if (remainingActiveItems.length === 0) {
     await db.order.update({
-      where: { id: orderId },
+      where: { id: sourceOrder.id },
       data: { status: "SPLIT", closedAt: new Date() },
     });
   }
 
-  await recalcOrder(orderId);
+  await recalcOrder(sourceOrder.id);
   await recalcOrder(newOrder.id);
-  revalidatePath("/order");
+  safeRevalidatePath("/order");
+  return newOrder;
+}
+
+export async function splitItems(orderId: string, itemIds: string[], newTableId: string) {
+  return splitOrder({
+    sourceOrderId: orderId,
+    targetTableId: newTableId,
+    items: itemIds.map(id => ({ orderItemId: id, quantity: 999 })),
+  });
 }
 
 export async function splitItemsEvenly(orderId: string, itemIds: string[]) {
   const originalOrder = await db.order.findUnique({
     where: { id: orderId },
-    include: { table: { select: { areaId: true } } },
+    include: { table: { select: { areaId: true } }, items: true },
   });
   if (!originalOrder) throw new Error("Order not found");
 
   const emptyTable = await db.table.findFirst({
     where: { areaId: originalOrder.table.areaId, orders: { none: { status: { in: ["OPEN", "SENT"] } } } },
   });
-  if (!emptyTable) throw new Error("No empty tables in this area");
 
-  const existingSplits = await db.order.count({
-    where: { parentOrderId: orderId, status: "SPLIT" },
+  return splitOrder({
+    sourceOrderId: orderId,
+    targetTableId: emptyTable ? emptyTable.id : null,
+    items: itemIds.map(id => {
+      const it = originalOrder.items.find(i => i.id === id);
+      const qty = it ? Math.max(1, Math.floor(it.quantity / 2)) : 1;
+      return { orderItemId: id, quantity: qty };
+    }),
   });
-
-  const newOrder = await db.order.create({
-    data: {
-      orderNumber: originalOrder.orderNumber,
-      orderNumberSuffix: String(existingSplits + 1),
-      tableId: emptyTable.id,
-      guestCount: 1,
-      status: "OPEN",
-      parentOrderId: orderId,
-      splitFrom: orderId,
-      type: originalOrder.type,
-    },
-  });
-
-  for (const itemId of itemIds) {
-    const item = await db.orderItem.findUnique({ where: { id: itemId } });
-    if (!item || item.orderId !== orderId) continue;
-    if (item.quantity > 1) {
-      const stay = Math.ceil(item.quantity / 2);
-      const move = item.quantity - stay;
-      await db.orderItem.update({ where: { id: itemId }, data: { quantity: stay } });
-      await db.orderItem.create({
-        data: { orderId: newOrder.id, productId: item.productId, quantity: move, unitPrice: item.unitPrice },
-      });
-    } else {
-      await db.orderItem.update({ where: { id: itemId }, data: { orderId: newOrder.id } });
-    }
-  }
-
-  await recalcOrder(orderId);
-  await recalcOrder(newOrder.id);
-  revalidatePath("/order");
-  return newOrder;
 }
 
 // ============ TEMPORARY BILL ============
@@ -385,8 +450,8 @@ export async function checkoutOrder(orderId: string, payments: { method: string;
   }
 
   try { await printOrderTicket(orderId, order.table.areaId, "BILL"); } catch (e) { console.error("Print error:", e); }
-  revalidatePath("/order");
-  revalidatePath("/cash");
+  safeRevalidatePath("/order");
+  safeRevalidatePath("/cash");
 }
 
 // ============ PRINTER ============
@@ -571,8 +636,8 @@ async function recalcOrder(orderId: string) {
   const now = new Date();
   const todayISO = now.toISOString().slice(0, 10);
   const [activeCharges, todayHolidays] = await Promise.all([
-    getCachedServiceCharges(),
-    getCachedTodayHolidays(todayISO),
+    getServiceCharges(),
+    getTodayHolidays(todayISO),
   ]);
   const isHoliday = todayHolidays.length > 0;
 
@@ -621,6 +686,14 @@ const getCachedServiceCharges = unstable_cache(
   { revalidate: 3600, tags: ["service-charges"] }
 );
 
+async function getServiceCharges() {
+  try {
+    return await getCachedServiceCharges();
+  } catch {
+    return db.serviceCharge.findMany({ where: { isActive: true } });
+  }
+}
+
 const getCachedTodayHolidays = unstable_cache(
   async (todayISO: string) =>
     db.holiday.findMany({
@@ -635,8 +708,23 @@ const getCachedTodayHolidays = unstable_cache(
   { revalidate: 3600, tags: ["holidays"] }
 );
 
+async function getTodayHolidays(todayISO: string) {
+  try {
+    return await getCachedTodayHolidays(todayISO);
+  } catch {
+    return db.holiday.findMany({
+      where: {
+        date: {
+          gte: new Date(todayISO + "T00:00:00.000Z"),
+          lte: new Date(todayISO + "T23:59:59.999Z"),
+        },
+      },
+    });
+  }
+}
+
 // ============ CATEGORIES & PRODUCTS FOR ORDER ============
-export const getCategoriesWithProducts = unstable_cache(
+const cachedCategoriesWithProducts = unstable_cache(
   async () => {
     return db.category.findMany({
       include: {
@@ -659,3 +747,27 @@ export const getCategoriesWithProducts = unstable_cache(
   ["categories-with-products"],
   { revalidate: 3600, tags: ["products", "categories"] }
 );
+
+export async function getCategoriesWithProducts() {
+  try {
+    return await cachedCategoriesWithProducts();
+  } catch {
+    return db.category.findMany({
+      include: {
+        products: {
+          where: { isAvailable: true },
+          include: {
+            vat: true,
+            exciseTax: true,
+            unit: true,
+            toppingGroups: {
+              include: { toppingGroup: { include: { toppings: { orderBy: { sortOrder: "asc" } } } } },
+            },
+          },
+          orderBy: { sortOrder: "asc" },
+        },
+      },
+      orderBy: { sortOrder: "asc" },
+    });
+  }
+}

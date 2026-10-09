@@ -85,7 +85,19 @@ export const ko = {
     "occupied": "사용 중",
     "tableFree": "빈 테이블",
     "orderedItems": "주문 메뉴",
-    "selectedCount": "선택됨"
+    "selectedCount": "선택됨",
+    "mergeTarget": "대표 테이블 (대상)",
+    "mergeSource": "합칠 테이블",
+    "mergeConfirm": "테이블 합석 확인",
+    "mergeConfirmDesc": "주문이 대표 테이블로 합쳐지며 보조 테이블은 빈 테이블이 됩니다.",
+    "mergeSuccess": "테이블이 성공적으로 합쳐졌습니다!",
+    "splitToTable": "다른 테이블로 이동",
+    "splitToSubAccount": "동일 테이블 내 분할",
+    "splitSelectTable": "이동할 테이블 선택",
+    "splitNoEmpty": "해당 구역에 빈 테이블이 없습니다",
+    "splitSameTableDesc": "동일 테이블에서 개별 계산서(A, B)를 생성합니다.",
+    "splitSummaryCurrent": "현재 테이블 유지",
+    "splitSummaryNew": "새 계산서 이동"
   },
   "inventory": {
     "title": "재고 관리",

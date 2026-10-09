@@ -4,11 +4,19 @@ import { db } from "@/lib/db";
 import { revalidatePath, revalidateTag, unstable_cache } from "next/cache";
 
 // ============ General Config ============
-export const getGeneralConfig = unstable_cache(
+const cachedGeneralConfig = unstable_cache(
   async () => db.generalConfig.findFirst({ where: { id: "default" } }),
   ["general-config"],
   { revalidate: 3600, tags: ["general-config"] }
 );
+
+export async function getGeneralConfig() {
+  try {
+    return await cachedGeneralConfig();
+  } catch {
+    return db.generalConfig.findFirst({ where: { id: "default" } });
+  }
+}
 
 export async function updateGeneralConfig(data: {
   restaurantName: string;
@@ -372,11 +380,19 @@ export async function deletePaymentMethod(id: string) {
 }
 
 // ============ System Modules ============
-export const getSystemModules = unstable_cache(
+const cachedSystemModules = unstable_cache(
   async () => db.systemModule.findMany(),
   ["system-modules"],
   { revalidate: 3600, tags: ["system-modules"] }
 );
+
+export async function getSystemModules() {
+  try {
+    return await cachedSystemModules();
+  } catch {
+    return db.systemModule.findMany();
+  }
+}
 
 export async function isSystemModuleEnabled(name: string) {
   const modules = await getSystemModules();

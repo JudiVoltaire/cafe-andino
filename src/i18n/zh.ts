@@ -85,7 +85,19 @@ export const zh = {
     "occupied": "使用中",
     "tableFree": "空闲",
     "orderedItems": "已点菜品",
-    "selectedCount": "已选择"
+    "selectedCount": "已选择",
+    "mergeTarget": "主桌（目标桌）",
+    "mergeSource": "待并入桌",
+    "mergeConfirm": "确认并桌",
+    "mergeConfirmDesc": "所有菜品将并入主桌，副桌将被清空释放。",
+    "mergeSuccess": "并桌成功！",
+    "splitToTable": "转至其他空桌",
+    "splitToSubAccount": "同桌拆分账单",
+    "splitSelectTable": "选择目标桌",
+    "splitNoEmpty": "该区域暂无空桌",
+    "splitSameTableDesc": "在同桌创建分单（如账单A、账单B）以便分别结账。",
+    "splitSummaryCurrent": "原桌保留",
+    "splitSummaryNew": "新单接收"
   },
   "inventory": {
     "title": "库存管理",
