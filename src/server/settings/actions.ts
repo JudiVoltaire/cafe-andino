@@ -119,8 +119,40 @@ export async function getVats() {
   return db.vat.findMany({ orderBy: { createdAt: "asc" } });
 }
 
+export async function updateTaxMode(taxMode: string) {
+  await db.generalConfig.upsert({
+    where: { id: "default" },
+    create: { restaurantName: "Bakery, Coffee and bistro Eben Ezer", taxMode },
+    update: { taxMode },
+  });
+  revalidatePath("/settings");
+  revalidatePath("/settings/vat");
+  revalidatePath("/settings/excise-tax");
+  revalidatePath("/order");
+  revalidateTag("general-config", "default");
+}
+
+export async function bulkSetProductsVat(vatId: string) {
+  await db.product.updateMany({
+    data: { vatId },
+  });
+  revalidatePath("/settings/vat");
+  revalidatePath("/settings/products");
+  revalidatePath("/order");
+}
+
+export async function createVat(data: { code: string; name: string; rate: number }) {
+  await db.vat.create({ data });
+  revalidatePath("/settings/vat");
+}
+
 export async function upsertVat(id: string, data: { code: string; name: string; rate: number }) {
   await db.vat.update({ where: { id }, data });
+  revalidatePath("/settings/vat");
+}
+
+export async function deleteVat(id: string) {
+  await db.vat.delete({ where: { id } });
   revalidatePath("/settings/vat");
 }
 
@@ -129,8 +161,18 @@ export async function getExciseTaxes() {
   return db.exciseTax.findMany({ orderBy: { createdAt: "asc" } });
 }
 
+export async function createExciseTax(data: { code: string; name: string; rate: number }) {
+  await db.exciseTax.create({ data });
+  revalidatePath("/settings/excise-tax");
+}
+
 export async function upsertExciseTax(id: string, data: { code: string; name: string; rate: number }) {
   await db.exciseTax.update({ where: { id }, data });
+  revalidatePath("/settings/excise-tax");
+}
+
+export async function deleteExciseTax(id: string) {
+  await db.exciseTax.delete({ where: { id } });
   revalidatePath("/settings/excise-tax");
 }
 

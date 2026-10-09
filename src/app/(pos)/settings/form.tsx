@@ -61,14 +61,25 @@ export function GeneralConfigForm({ config, action }: { config: Config | null; a
           <div className="space-y-2">
             <Label>{t.settings.taxMode}</Label>
             <Select value={form.taxMode} onValueChange={v => setForm(f => ({ ...f, taxMode: v || "EXCLUSIVE" }))}>
-              <SelectTrigger className="h-10 rounded-lg max-w-xs"><SelectValue>{form.taxMode === "INCLUSIVE" ? t.inventory.taxIncluded : t.inventory.taxNotIncluded}</SelectValue></SelectTrigger>
+              <SelectTrigger className="h-10 rounded-lg max-w-xs">
+                <SelectValue>
+                  {form.taxMode === "EXEMPT"
+                    ? (t.inventory.taxExempt || "Exento de impuestos (0%)")
+                    : form.taxMode === "INCLUSIVE"
+                    ? t.inventory.taxIncluded
+                    : t.inventory.taxNotIncluded}
+                </SelectValue>
+              </SelectTrigger>
               <SelectContent>
+                <SelectItem value="EXEMPT">{t.inventory.taxExempt || "Exento de impuestos (Régimen Simplificado / 0%)"}</SelectItem>
                 <SelectItem value="EXCLUSIVE">{t.inventory.taxNotIncluded} ({t.order.subtotal.toLowerCase()} + {t.order.vat}, {t.order.exciseTax})</SelectItem>
                 <SelectItem value="INCLUSIVE">{t.inventory.taxIncluded} ({t.reports.revenue.toLowerCase()} {t.order.vat}, {t.order.exciseTax})</SelectItem>
               </SelectContent>
             </Select>
             <p className="text-xs text-muted-foreground">
-              {form.taxMode === "INCLUSIVE"
+              {form.taxMode === "EXEMPT"
+                ? (t.inventory.taxExemptDesc || "El negocio opera bajo régimen exento. Ningún pedido añadirá IVA ni impuestos especiales (alícuota 0%).")
+                : form.taxMode === "INCLUSIVE"
                 ? t.inventory.taxIncludedDesc
                 : t.inventory.taxNotIncludedDesc}
             </p>

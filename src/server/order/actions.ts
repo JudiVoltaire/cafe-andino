@@ -3,7 +3,7 @@
 import { db } from "@/lib/db";
 import { revalidatePath, unstable_cache } from "next/cache";
 import { autoDeductStockForOrder } from "@/server/recipe/actions";
-import { isSystemModuleEnabled } from "@/server/settings/actions";
+import { isSystemModuleEnabled, getGeneralConfig } from "@/server/settings/actions";
 
 // ============ TABLE VIEW ============
 
@@ -526,22 +526,45 @@ async function recalcOrder(orderId: string) {
 
   subtotal += toppingTotal;
 
-  // Group by tax
-  const taxByVat: Record<string, number> = {};
-  const taxByExcise: Record<string, number> = {};
+  // Tax calculation based on general configuration
+  const config = await getGeneralConfig();
+  const taxMode = config?.taxMode ?? "EXCLUSIVE";
+  const isTaxExempt = taxMode === "EXEMPT";
+  const isInclusive = taxMode === "INCLUSIVE";
 
-  for (const item of order.items) {
-    const k = `${item.product.vatId}:${item.product.vat.rate}`;
-    taxByVat[k] = (taxByVat[k] || 0) + item.unitPrice * item.quantity * item.product.vat.rate;
+  let vatAmount = 0;
+  let exciseTaxAmount = 0;
 
-    if (item.product.exciseTax) {
-      const ek = `${item.product.exciseTaxId}:${item.product.exciseTax.rate}`;
-      taxByExcise[ek] = (taxByExcise[ek] || 0) + item.unitPrice * item.quantity * item.product.exciseTax.rate;
+  if (!isTaxExempt) {
+    const taxByVat: Record<string, number> = {};
+    const taxByExcise: Record<string, number> = {};
+
+    for (const item of order.items) {
+      const itemSubtotal = item.unitPrice * item.quantity;
+      const vatRate = item.product.vat?.rate ?? 0;
+
+      if (vatRate > 0) {
+        const k = `${item.product.vatId}:${vatRate}`;
+        if (isInclusive) {
+          taxByVat[k] = (taxByVat[k] || 0) + itemSubtotal * (vatRate / (1 + vatRate));
+        } else {
+          taxByVat[k] = (taxByVat[k] || 0) + itemSubtotal * vatRate;
+        }
+      }
+
+      if (item.product.exciseTax && item.product.exciseTax.rate > 0) {
+        const ek = `${item.product.exciseTaxId}:${item.product.exciseTax.rate}`;
+        if (isInclusive) {
+          taxByExcise[ek] = (taxByExcise[ek] || 0) + itemSubtotal * (item.product.exciseTax.rate / (1 + item.product.exciseTax.rate));
+        } else {
+          taxByExcise[ek] = (taxByExcise[ek] || 0) + itemSubtotal * item.product.exciseTax.rate;
+        }
+      }
     }
-  }
 
-  const vatAmount = Object.values(taxByVat).reduce((a, b) => a + b, 0);
-  const exciseTaxAmount = Object.values(taxByExcise).reduce((a, b) => a + b, 0);
+    vatAmount = Object.values(taxByVat).reduce((a, b) => a + b, 0);
+    exciseTaxAmount = Object.values(taxByExcise).reduce((a, b) => a + b, 0);
+  }
 
   // Auto-calculate service charges
   let serviceCharge = 0;
@@ -582,7 +605,9 @@ async function recalcOrder(orderId: string) {
     }
   }
 
-  const totalAmount = subtotal + vatAmount + exciseTaxAmount - order.discountAmount + serviceCharge;
+  const totalAmount = isTaxExempt || isInclusive
+    ? subtotal - order.discountAmount + serviceCharge
+    : subtotal + vatAmount + exciseTaxAmount - order.discountAmount + serviceCharge;
 
   await db.order.update({
     where: { id: orderId },
