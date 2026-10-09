@@ -51,6 +51,17 @@ export async function getDashboardStats() {
 
   const revenue = paidOrders.reduce((sum, o) => sum + o.totalAmount, 0);
 
+  const timeline = recentOrders.map(o => ({
+    label: o.status === "PAID"
+      ? `Mesa ${o.table.name} pagada`
+      : o.status === "SENT"
+        ? `Mesa ${o.table.name} en preparación`
+        : `Mesa ${o.table.name} abrió pedido`,
+    amount: o.totalAmount,
+    time: o.closedAt ? minutesAgo(o.closedAt) : minutesAgo(o.openedAt),
+    color: o.status === "PAID" ? "#10b981" : o.status === "SENT" ? "#d97706" : "#3b82f6",
+  }));
+
   let topProduct = "—";
   let topQty = 0;
   if (topItem[0]) {
