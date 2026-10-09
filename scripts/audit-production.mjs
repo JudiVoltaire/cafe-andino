@@ -1,4 +1,4 @@
-const BASE_URL = "https://cafe-andino-virid.vercel.app";
+const BASE_URL = process.env.BASE_URL || "https://bakery-and-coffee-eben-ezer.vercel.app";
 
 async function loginUser(username, password) {
   const csrfRes = await fetch(`${BASE_URL}/api/auth/csrf`);
