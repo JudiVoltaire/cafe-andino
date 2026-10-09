@@ -51,7 +51,7 @@ export function MobileBottomNav({ enabledModules }: { enabledModules: Set<string
               className={`flex-1 flex flex-col items-center justify-center gap-0.5 transition-all duration-200 active:scale-95 touch-manipulation ${
                 !visible ? "opacity-30 pointer-events-none" : ""
               } ${
-                active ? "text-amber-600" : "text-gray-400 hover:text-gray-600"
+                active ? "text-emerald-800 font-bold" : "text-gray-400 hover:text-gray-600"
               }`}
             >
               <Icon className="h-5 w-5" strokeWidth={active ? 2.5 : 2} />

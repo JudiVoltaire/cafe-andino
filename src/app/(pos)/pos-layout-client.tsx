@@ -44,7 +44,7 @@ export function PosLayoutClient({ children, enabledModuleNames }: { children: Re
             <div className="w-7 h-7 rounded-lg flex items-center justify-center overflow-hidden">
               <img src="/logo.png" alt="Logo" width={28} height={28} className="object-cover" />
             </div>
-            <span className="font-bold text-sm text-gray-900">POS F&B</span>
+            <span className="font-bold text-sm text-emerald-950">Bakery & Coffee Eben Ezer</span>
           </Link>
           <nav className="flex items-center gap-1">
             {navItems.map(item => {
@@ -55,7 +55,7 @@ export function PosLayoutClient({ children, enabledModuleNames }: { children: Re
                   className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
                     !item.visible ? "opacity-30 pointer-events-none" : ""
                   } ${
-                    active ? "bg-amber-50 text-amber-700" : "text-gray-500 hover:text-gray-700 hover:bg-gray-50"
+                    active ? "bg-emerald-50 text-emerald-800 font-semibold" : "text-gray-500 hover:text-gray-700 hover:bg-gray-50"
                   }`}>
                   {item.label}
                 </Link>
@@ -66,7 +66,7 @@ export function PosLayoutClient({ children, enabledModuleNames }: { children: Re
         <div className="flex items-center gap-3">
           <LanguageSwitcher />
           <div className="flex items-center gap-2">
-            <div className="w-7 h-7 rounded-full bg-amber-500 flex items-center justify-center text-white text-xs font-bold">
+            <div className="w-7 h-7 rounded-full bg-emerald-800 flex items-center justify-center text-white text-xs font-bold">
               {session?.user?.name?.[0] || "U"}
             </div>
             <span className="text-sm text-gray-700">{session?.user?.name}</span>
@@ -87,14 +87,14 @@ export function PosLayoutClient({ children, enabledModuleNames }: { children: Re
           <div className="w-7 h-7 rounded-lg flex items-center justify-center overflow-hidden">
             <img src="/logo.png" alt="Logo" width={28} height={28} className="object-cover" />
           </div>
-          <span className="font-bold text-sm text-gray-900">POS F&B</span>
+          <span className="font-bold text-sm text-emerald-950">Eben Ezer</span>
         </Link>
         <div className="flex items-center gap-2">
           <LanguageSwitcher />
           <div className="relative">
             <button
               onClick={() => setUserMenuOpen(!userMenuOpen)}
-              className="w-7 h-7 rounded-full bg-amber-500 flex items-center justify-center text-white text-xs font-bold touch-manipulation"
+              className="w-7 h-7 rounded-full bg-emerald-800 flex items-center justify-center text-white text-xs font-bold touch-manipulation"
             >
               {session?.user?.name?.[0] || "U"}
             </button>

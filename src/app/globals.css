@@ -18,42 +18,55 @@
   --radius-2xl: 16px;
   --radius: 12px;
 
-  /* shadcn */
+  /* shadcn - Dark Green Palette (Bakery And Coffee Eben Ezer) */
   --color-card: #ffffff;
   --color-card-foreground: #111827;
   --color-popover: #ffffff;
   --color-popover-foreground: #111827;
-  --color-primary: #d97706;
+  --color-primary: #166534; /* Dark forest green */
   --color-primary-foreground: #ffffff;
-  --color-secondary: #f3f4f6;
-  --color-secondary-foreground: #1f2937;
+  --color-secondary: #f0fdf4;
+  --color-secondary-foreground: #14532d;
   --color-muted: #f3f4f6;
   --color-muted-foreground: #6b7280;
-  --color-accent: #fef3c7;
-  --color-accent-foreground: #92400e;
+  --color-accent: #dcfce7;
+  --color-accent-foreground: #14532d;
   --color-destructive: #ef4444;
   --color-border: #e5e7eb;
   --color-input: #e5e7eb;
-  --color-ring: #f59e0b;
-  --color-success: #10b981;
+  --color-ring: #15803d;
+  --color-success: #15803d;
   --color-success-foreground: #ffffff;
-  --color-warning: #f59e0b;
+  --color-warning: #ca8a04;
   --color-warning-foreground: #1f2937;
 
+  /* Theme tokens remapped to dark green */
+  --color-amber-50: #f0fdf4;
+  --color-amber-100: #dcfce7;
+  --color-amber-200: #bbf7d0;
+  --color-amber-300: #86efac;
+  --color-amber-400: #4ade80;
+  --color-amber-500: #15803d;
+  --color-amber-600: #166534;
+  --color-amber-700: #14532d;
+  --color-amber-800: #052e16;
+  --color-amber-900: #022c22;
+  --color-amber-950: #011a14;
+
   /* Charts */
-  --color-chart-1: #d97706;
-  --color-chart-2: #10b981;
-  --color-chart-3: #3b82f6;
-  --color-chart-4: #f59e0b;
-  --color-chart-5: #8b5cf6;
+  --color-chart-1: #166534;
+  --color-chart-2: #22c55e;
+  --color-chart-3: #0284c7;
+  --color-chart-4: #ca8a04;
+  --color-chart-5: #6366f1;
 
   /* Sidebar */
-  --color-sidebar-ring: #f59e0b;
+  --color-sidebar-ring: #15803d;
   --color-sidebar-border: #e5e7eb;
-  --color-sidebar-accent-foreground: #92400e;
-  --color-sidebar-accent: #fef3c7;
+  --color-sidebar-accent-foreground: #14532d;
+  --color-sidebar-accent: #dcfce7;
   --color-sidebar-primary-foreground: #ffffff;
-  --color-sidebar-primary: #d97706;
+  --color-sidebar-primary: #166534;
   --color-sidebar-foreground: #111827;
   --color-sidebar: #f9fafb;
 

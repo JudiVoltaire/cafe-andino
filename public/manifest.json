@@ -1,11 +1,11 @@
 {
-  "name": "POS F&B",
-  "short_name": "POS F&B",
-  "description": "POS F&B — Restaurant Point of Sale",
+  "name": "Bakery And Coffee Eben Ezer",
+  "short_name": "Eben Ezer",
+  "description": "Bakery And Coffee Eben Ezer - Punto de Venta",
   "start_url": "/order",
   "display": "standalone",
   "orientation": "any",
-  "theme_color": "#f9fafb",
+  "theme_color": "#166534",
   "background_color": "#ffffff",
   "icons": [
     {
