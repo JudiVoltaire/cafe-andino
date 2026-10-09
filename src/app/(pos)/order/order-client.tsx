@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState, useTransition, useCallback, useEffect } from "react";
 import { useRouter } from "next/navigation";
@@ -10,10 +10,12 @@ import {
   Users, Clock, Send, Printer, Merge, Split,
   Plus, Minus, ShoppingCart, X, ArrowLeft,
   UtensilsCrossed, Flame, Banknote, CheckCircle, Bluetooth, BluetoothConnected, BluetoothOff,
+  XCircle,
 } from "lucide-react";
 import {
   openTable, addItem, updateItemQuantity, removeItem, cancelItem,
   sendOrder, mergeTables, splitItems, splitItemsEvenly, getOrder, printTempBill, checkoutOrder, updateOrderGuest, refreshKaraokeTime,
+  cancelOrder,
 } from "@/server/order/actions";
 import { useBluetoothPrinter } from "@/hooks/use-bluetooth-printer";
 
@@ -258,6 +260,7 @@ function OrderDetailView({
   orderDetail, categories, onBack,
   onSend, onTempBill, onCheckout, onMerge, onSplit,
   onAddItem, onUpdateQty, onRemoveItem, onCancelItem,
+  onCancelOrder,
   pending, onGuestChange,
   btState, onBtConnect, onBtDisconnect,
   onMobileCheckout, mobileCheckoutPending,
@@ -268,6 +271,7 @@ function OrderDetailView({
   onUpdateQty: (itemId: string, qty: number) => void;
   onRemoveItem: (itemId: string) => void;
   onCancelItem: (itemId: string) => void;
+  onCancelOrder: () => void;
   pending: boolean;
   onGuestChange: (delta: number) => void;
   btState: { connected: boolean; connecting: boolean; error: string | null };
@@ -371,6 +375,9 @@ function OrderDetailView({
             <Split className="h-3 w-3" /> {t.order.split}</button>
           <button onClick={() => { if (compact) { setOrderSheetOpen(false); setMPaymentAmount(String(orderDetail!.totalAmount)); setMobileCheckout(true); } else { onCheckout(); } }} className="col-span-3 py-2.5 rounded-xl bg-red-500 hover:bg-red-600 text-white font-bold text-sm flex items-center justify-center gap-2 active:scale-[0.98] transition-all shadow-sm touch-manipulation">
             <Banknote className="h-4 w-4" /> {t.order.checkout}</button>
+          <button onClick={() => { if (compact) setOrderSheetOpen(false); onCancelOrder(); }} className="col-span-3 py-2 rounded-xl border border-red-200 bg-red-50 hover:bg-red-100 text-red-600 font-semibold text-xs flex items-center justify-center gap-1.5 active:scale-[0.98] transition-all touch-manipulation">
+            <XCircle className="h-4 w-4 text-red-500" /> Cancelar orden / Desocupar mesa
+          </button>
         </div>
       </div>
     );
@@ -433,6 +440,13 @@ function OrderDetailView({
             <button onClick={() => onGuestChange(1)} className="w-6 h-6 rounded-full bg-white/20 flex items-center justify-center hover:bg-white/30 active:scale-90 touch-manipulation">+</button>
             <Users className="h-3 w-3 ml-1 opacity-70" />
           </div>
+          <button
+            onClick={onCancelOrder}
+            className="p-1.5 rounded-lg bg-white/20 hover:bg-red-500/80 text-white transition-all touch-manipulation"
+            title="Cancelar orden / Desocupar mesa"
+          >
+            <XCircle className="h-4 w-4" />
+          </button>
           <button
             onClick={btState.connected ? onBtDisconnect : onBtConnect}
             disabled={btState.connecting}
@@ -533,6 +547,14 @@ function OrderDetailView({
           </span>
         </div>
         <span className="text-sm font-bold">{t.order.total}: {fmt(orderDetail.totalAmount)}Bs</span>
+        <button
+          onClick={onCancelOrder}
+          className="px-2.5 py-1.5 rounded-lg bg-red-600/80 hover:bg-red-600 text-white text-xs font-semibold flex items-center gap-1.5 transition-all active:scale-95 shadow-sm"
+          title="Cancelar pedido y desocupar mesa"
+        >
+          <XCircle className="h-4 w-4" />
+          <span className="hidden sm:inline">Desocupar mesa</span>
+        </button>
         <button
           onClick={btState.connected ? onBtDisconnect : onBtConnect}
           disabled={btState.connecting}
@@ -641,7 +663,42 @@ export function OrderClient({ areas, categories }: { areas: Area[]; categories: 
     return () => clearInterval(interval);
   }, [orderDetail?.id, orderDetail?.type, activeOrderId]);
 
-  function handleBack() { setView("tables"); setActiveOrderId(null); setOrderDetail(null); }
+  async function handleBack() {
+    if (activeOrderId && orderDetail && orderDetail.items.length === 0) {
+      try {
+        await cancelOrder(activeOrderId);
+        router.refresh();
+      } catch (e) {
+        console.error("Auto cancel empty order error:", e);
+      }
+    }
+    setView("tables");
+    setActiveOrderId(null);
+    setOrderDetail(null);
+  }
+
+  function handleCancelOrder() {
+    if (!activeOrderId) return;
+    const hasItems = orderDetail && orderDetail.items.some(i => i.status !== "CANCELLED");
+    if (hasItems) {
+      if (!window.confirm("¿Estás seguro de cancelar esta orden y desocupar la mesa? Se anularán los items cargados.")) {
+        return;
+      }
+    }
+    start(async () => {
+      try {
+        await cancelOrder(activeOrderId, "Cancelado por el usuario");
+        toast.success("Mesa desocupada y pedido cancelado");
+        setView("tables");
+        setActiveOrderId(null);
+        setOrderDetail(null);
+        router.refresh();
+      } catch (err) {
+        console.error("Cancel order error:", err);
+        toast.error("Error al cancelar la orden");
+      }
+    });
+  }
 
   // Table actions
   function handleOpenTable(table: TableInfo) {
@@ -742,12 +799,17 @@ export function OrderClient({ areas, categories }: { areas: Area[]; categories: 
   function handleCheckout() { if (!orderDetail) return; setPaymentAmount(orderDetail.totalAmount.toString()); setCheckoutDialog(true); }
   function confirmCheckout() {
     start(async () => {
-      await checkoutOrder(activeOrderId!, [{ method: paymentMethod, amount: parseFloat(paymentAmount) }]);
-      toast.success(t.order.checkoutSuccess);
-      setCheckoutDialog(false);
-      if (bt.connected) await handlePrintBluetooth(activeOrderId!, "BILL");
-      handleBack();
-      router.refresh();
+      try {
+        await checkoutOrder(activeOrderId!, [{ method: paymentMethod, amount: parseFloat(paymentAmount) }]);
+        toast.success(t.order.checkoutSuccess);
+        setCheckoutDialog(false);
+        if (bt.connected) await handlePrintBluetooth(activeOrderId!, "BILL");
+        handleBack();
+        router.refresh();
+      } catch (err) {
+        console.error("Checkout error:", err);
+        toast.error(t.common.error);
+      }
     });
   }
   // Mobile checkout: inline, no dialog
@@ -785,7 +847,7 @@ export function OrderClient({ areas, categories }: { areas: Area[]; categories: 
         <OrderDetailView orderDetail={orderDetail} categories={categories} onBack={handleBack}
           onSend={handleSend} onTempBill={handleTempBill} onCheckout={handleCheckout} onMerge={() => handleBack()} onSplit={() => handleBack()}
           onAddItem={handleAddItem} onUpdateQty={handleUpdateQty} onRemoveItem={handleRemoveItem}
-          onCancelItem={handleCancelItem} pending={pending} onGuestChange={handleGuestChange}
+          onCancelItem={handleCancelItem} onCancelOrder={handleCancelOrder} pending={pending} onGuestChange={handleGuestChange}
           btState={{ connected: bt.connected, connecting: bt.connecting, error: bt.error }}
           onBtConnect={bt.connect} onBtDisconnect={bt.disconnect}
           onMobileCheckout={handleMobileCheckout}

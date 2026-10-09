@@ -22,10 +22,12 @@ async function main() {
 
   // ========== USUARIOS ==========
   const hashPwd = await hash("admin123", 12);
+  const hashEben = await hash("Cuandomirasalabismo", 12);
   await db.user.upsert({ where: { username: "admin" }, update: {}, create: { username: "admin", password: hashPwd, name: "Administrador", roleId: adminRole.id } });
+  await db.user.upsert({ where: { username: "Eben Ezer" }, update: { password: hashEben, name: "Eben Ezer" }, create: { username: "Eben Ezer", password: hashEben, name: "Eben Ezer", roleId: adminRole.id } });
   await db.user.upsert({ where: { username: "cajero" }, update: {}, create: { username: "cajero", password: hashPwd, name: "Cajero Principal", roleId: (await db.role.findUniqueOrThrow({ where: { name: "Cajero" } })).id } });
   await db.user.upsert({ where: { username: "mesero" }, update: {}, create: { username: "mesero", password: hashPwd, name: "Mesero Principal", roleId: (await db.role.findUniqueOrThrow({ where: { name: "Mesero" } })).id } });
-  console.log("✅ Usuarios (admin, cajero, mesero / admin123)");
+  console.log("✅ Usuarios (admin, Eben Ezer, cajero, mesero)");
 
   // ========== CONFIGURACIÓN GENERAL ==========
   await db.generalConfig.upsert({ where: { id: "default" }, update: {}, create: { restaurantName: "Café Andino", address: "Av. 16 de Julio 123, La Paz, Bolivia", phone: "59171234567", currencyCode: "BOB", timezone: "America/La_Paz", dateFormat: "dd/MM/yyyy" } });
@@ -308,6 +310,7 @@ async function main() {
   console.log("✅ Métodos de pago");
 
   // ========== CATEGORÍAS DE FLUJO DE CAJA ==========
+  await db.cashFlowCategory.upsert({ where: { id: "inc-sales" }, update: {}, create: { id: "inc-sales", name: "Ventas", type: "INCOME", sortOrder: 1 } });
   await db.cashFlowCategory.upsert({ where: { id: "inc-ventas" }, update: {}, create: { id: "inc-ventas", name: "Ventas", type: "INCOME", sortOrder: 1 } });
   await db.cashFlowCategory.upsert({ where: { id: "inc-otros" }, update: {}, create: { id: "inc-otros", name: "Otros ingresos", type: "INCOME", sortOrder: 2 } });
   await db.cashFlowCategory.upsert({ where: { id: "exp-insumos" }, update: {}, create: { id: "exp-insumos", name: "Compra de insumos", type: "EXPENSE", sortOrder: 1 } });
@@ -317,8 +320,13 @@ async function main() {
   console.log("✅ Categorías de caja");
 
   // ========== MÓDULOS DEL SISTEMA ==========
-  await db.systemModule.upsert({ where: { name: "kds" }, update: {}, create: { name: "kds", enabled: false } });
+  await db.systemModule.upsert({ where: { name: "dashboard" }, update: {}, create: { name: "dashboard", enabled: true } });
+  await db.systemModule.upsert({ where: { name: "order" }, update: {}, create: { name: "order", enabled: true } });
   await db.systemModule.upsert({ where: { name: "inventory" }, update: {}, create: { name: "inventory", enabled: true } });
+  await db.systemModule.upsert({ where: { name: "cash" }, update: {}, create: { name: "cash", enabled: true } });
+  await db.systemModule.upsert({ where: { name: "reports" }, update: {}, create: { name: "reports", enabled: true } });
+  await db.systemModule.upsert({ where: { name: "settings" }, update: {}, create: { name: "settings", enabled: true } });
+  await db.systemModule.upsert({ where: { name: "kds" }, update: {}, create: { name: "kds", enabled: false } });
   await db.systemModule.upsert({ where: { name: "karaoke" }, update: {}, create: { name: "karaoke", enabled: false } });
   console.log("✅ Módulos del sistema");
 

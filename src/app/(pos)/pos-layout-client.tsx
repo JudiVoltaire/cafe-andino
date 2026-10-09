@@ -7,7 +7,6 @@ import { LogOut } from "lucide-react";
 import { useState, useEffect } from "react";
 import { LanguageSwitcher } from "@/i18n/language-switcher";
 import { useI18n } from "@/i18n/context";
-import { useDeviceInfo } from "@/components/shared/device-provider";
 import { MobileBottomNav } from "@/components/shared/mobile-bottom-nav";
 import { usePermission } from "@/hooks/use-permission";
 
@@ -16,7 +15,6 @@ export function PosLayoutClient({ children, enabledModuleNames }: { children: Re
   const pathname = usePathname();
   const { data: session } = useSession();
   const { t } = useI18n();
-  const { isMobile, isTablet, isDesktop } = useDeviceInfo();
   const { canAccessModule } = usePermission();
   const [userMenuOpen, setUserMenuOpen] = useState(false);
 
@@ -36,7 +34,6 @@ export function PosLayoutClient({ children, enabledModuleNames }: { children: Re
     ...item,
     visible: (!item.module || enabledModules.has(item.module)) && (!item.module || canAccessModule(item.module)),
   }));
-  const isCompact = isMobile || isTablet;
 
   // ── Desktop Header ──────────────────────────────
   function DesktopHeader() {
@@ -126,16 +123,23 @@ export function PosLayoutClient({ children, enabledModuleNames }: { children: Re
 
   return (
     <div className="flex flex-col h-screen overflow-hidden bg-[#f9fafb]">
-      {/* Header: Desktop full / Mobile compact */}
-      {isDesktop ? <DesktopHeader /> : <CompactHeader />}
+      {/* Header: Desktop full / Mobile compact via CSS */}
+      <div className="hidden lg:block">
+        <DesktopHeader />
+      </div>
+      <div className="block lg:hidden">
+        <CompactHeader />
+      </div>
 
       {/* Main content — pad bottom on mobile for bottom nav */}
-      <div className={`flex-1 overflow-hidden ${isCompact ? "pb-14" : ""}`}>
+      <div className="flex-1 overflow-hidden pb-14 lg:pb-0">
         {children}
       </div>
 
       {/* Bottom Tab Bar — mobile & tablet only */}
-      {isCompact && <MobileBottomNav enabledModules={enabledModules} />}
+      <div className="block lg:hidden">
+        <MobileBottomNav enabledModules={enabledModules} />
+      </div>
     </div>
   );
 }

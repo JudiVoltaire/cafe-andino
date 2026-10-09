@@ -185,10 +185,21 @@ export async function openCashRegister(data: {
   userId: string;
   shiftId?: string;
 }) {
+  let resolvedUserId = data.userId;
+  const user = await db.user.findFirst({
+    where: { OR: [{ id: data.userId }, { username: data.userId }] },
+  });
+  if (user) {
+    resolvedUserId = user.id;
+  } else {
+    const firstUser = await db.user.findFirst();
+    if (firstUser) resolvedUserId = firstUser.id;
+  }
+
   const register = await db.cashRegister.create({
     data: {
       openingBalance: data.openingBalance,
-      userId: data.userId,
+      userId: resolvedUserId,
       shiftId: data.shiftId,
       status: "OPEN",
     },
@@ -248,7 +259,26 @@ export async function createPettyTransaction(data: {
   description?: string;
   userId: string;
 }) {
-  await db.pettyTransaction.create({ data });
+  let regId = data.cashRegisterId;
+  if (!regId) {
+    const openReg = await db.cashRegister.findFirst({ where: { status: "OPEN" } });
+    if (!openReg) throw new Error("No hay una caja abierta actualmente. Abre una caja primero.");
+    regId = openReg.id;
+  }
+
+  let resolvedUserId = data.userId;
+  const user = await db.user.findFirst({
+    where: { OR: [{ id: data.userId }, { username: data.userId }] },
+  });
+  if (user) resolvedUserId = user.id;
+
+  await db.pettyTransaction.create({
+    data: {
+      ...data,
+      cashRegisterId: regId,
+      userId: resolvedUserId,
+    },
+  });
   revalidatePath("/cash");
 }
 
@@ -276,9 +306,25 @@ export async function createCashFlow(data: {
   categoryId: string;
   amount: number;
   description?: string;
-  userId: string;
+  userId?: string;
 }) {
-  await db.cashFlow.create({ data });
+  let validUserId: string | null = null;
+  if (data.userId) {
+    const u = await db.user.findFirst({
+      where: { OR: [{ id: data.userId }, { username: data.userId }] },
+    });
+    validUserId = u?.id ?? null;
+  }
+
+  await db.cashFlow.create({
+    data: {
+      type: data.type,
+      categoryId: data.categoryId,
+      amount: data.amount,
+      description: data.description,
+      userId: validUserId,
+    },
+  });
   revalidatePath("/cash");
 }
 

@@ -88,6 +88,36 @@ export async function openTable(tableId: string, guestCount: number = 1, orderTy
   return order;
 }
 
+export async function cancelOrder(orderId: string, reason?: string) {
+  const order = await db.order.findUnique({
+    where: { id: orderId },
+    include: { items: true, payments: true, printJobs: true },
+  });
+  if (!order) return;
+
+  // If order was empty without payments/prints, delete it completely so DB stays clean
+  if (order.items.length === 0 && order.payments.length === 0 && order.printJobs.length === 0) {
+    await db.order.delete({ where: { id: orderId } });
+  } else {
+    // If it had items, cancel all items and mark order as CANCELLED
+    await db.orderItem.updateMany({
+      where: { orderId },
+      data: { status: "CANCELLED", cancelledAt: new Date(), note: reason || "Cancelado por el usuario" },
+    });
+    await db.order.update({
+      where: { id: orderId },
+      data: {
+        status: "CANCELLED",
+        closedAt: new Date(),
+        note: reason || "Cancelado",
+        totalAmount: 0,
+      },
+    });
+  }
+
+  revalidatePath("/order");
+}
+
 export async function getOrder(orderId: string) {
   return db.order.findUnique({
     where: { id: orderId },
@@ -329,16 +359,29 @@ export async function checkoutOrder(orderId: string, payments: { method: string;
   }
 
   if (order.type !== "COMP") {
-    await db.cashFlow.create({
-      data: {
-        type: "INCOME",
-        categoryId: "inc-sales",
-        amount: order.totalAmount,
-        description: `Order #${String(order.orderNumber).padStart(8, "0")}${order.orderNumberSuffix ? "-" + order.orderNumberSuffix : ""}`,
-        referenceId: orderId,
-        userId: userId || null,
+    const salesCat = await db.cashFlowCategory.findFirst({
+      where: {
+        OR: [
+          { id: "inc-sales" },
+          { id: "inc-ventas" },
+          { type: "INCOME" },
+        ],
       },
+      orderBy: { sortOrder: "asc" },
     });
+
+    if (salesCat) {
+      await db.cashFlow.create({
+        data: {
+          type: "INCOME",
+          categoryId: salesCat.id,
+          amount: order.totalAmount,
+          description: `Order #${String(order.orderNumber).padStart(8, "0")}${order.orderNumberSuffix ? "-" + order.orderNumberSuffix : ""}`,
+          referenceId: orderId,
+          userId: userId || null,
+        },
+      });
+    }
   }
 
   try { await printOrderTicket(orderId, order.table.areaId, "BILL"); } catch (e) { console.error("Print error:", e); }

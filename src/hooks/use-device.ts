@@ -34,18 +34,19 @@ function getDeviceInfo(width: number, height: number): DeviceInfo {
   };
 }
 
-function getInitialInfo(): DeviceInfo {
-  if (typeof window !== "undefined") {
-    return getDeviceInfo(window.innerWidth, window.innerHeight);
-  }
-  return getDeviceInfo(1024, 768); // SSR fallback
-}
+const SSR_INFO: DeviceInfo = getDeviceInfo(1024, 768);
 
 export function useDevice(): DeviceInfo {
-  const [info, setInfo] = useState<DeviceInfo>(getInitialInfo);
-  const lastDeviceRef = useRef<Device>(getDevice(typeof window !== "undefined" ? window.innerWidth : 1024));
+  // Always initialize with SSR_INFO so that initial hydration HTML matches server
+  const [info, setInfo] = useState<DeviceInfo>(SSR_INFO);
+  const lastDeviceRef = useRef<Device>("desktop");
 
   useEffect(() => {
+    // Immediately sync with actual browser dimensions on mount
+    const currentDevice = getDevice(window.innerWidth);
+    lastDeviceRef.current = currentDevice;
+    setInfo(getDeviceInfo(window.innerWidth, window.innerHeight));
+
     let raf = 0;
     function handleResize() {
       cancelAnimationFrame(raf);

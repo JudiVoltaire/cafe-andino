@@ -1,0 +1,21 @@
+services:
+  cafe-andino:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: cafe-andino-pos
+    restart: always
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - AUTH_SECRET=b7e2c9f1a3d5486c8e5f0b2d4a6c7e9f1a3b5c7d8e9f0a2b4c6d8e0f2a4b6c8d9e
+      - DATABASE_URL=file:/app/prisma/dev.db
+      - AUTH_URL=http://localhost:3000
+    volumes:
+      # Persistent storage: keeps your orders, sales, and settings safe across restarts
+      - cafe-andino-db:/app/prisma
+
+volumes:
+  cafe-andino-db:
+    driver: local
