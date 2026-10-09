@@ -44,7 +44,7 @@ export function PosLayoutClient({ children, enabledModuleNames }: { children: Re
             <div className="w-7 h-7 rounded-lg flex items-center justify-center overflow-hidden">
               <img src="/logo.png" alt="Logo" width={28} height={28} className="object-cover" />
             </div>
-            <span className="font-bold text-sm text-emerald-950">Bakery & Coffee Eben Ezer</span>
+            <span className="font-bold text-sm text-emerald-950">Bakery, Coffee and bistro Eben Ezer</span>
           </Link>
           <nav className="flex items-center gap-1">
             {navItems.map(item => {

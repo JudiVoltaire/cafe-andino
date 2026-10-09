@@ -827,7 +827,7 @@ export const es = {
     "passwordPlaceholder": "••••••••",
     "version": "Versión 1.2.0",
     "systemLabel": "SISTEMA POS",
-    "tagline": "Sistema de gestión - Bakery And Coffee Eben Ezer",
-    "copyright": "Bakery And Coffee Eben Ezer. Todos los derechos reservados."
+    "tagline": "Sistema de gestión - Bakery, Coffee and bistro Eben Ezer",
+    "copyright": "Bakery, Coffee and bistro Eben Ezer. Todos los derechos reservados."
   }
 };

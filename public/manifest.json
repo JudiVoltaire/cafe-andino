@@ -1,7 +1,7 @@
 {
-  "name": "Bakery And Coffee Eben Ezer",
+  "name": "Bakery, Coffee and bistro Eben Ezer",
   "short_name": "Eben Ezer",
-  "description": "Bakery And Coffee Eben Ezer - Punto de Venta",
+  "description": "Bakery, Coffee and bistro Eben Ezer - Punto de Venta",
   "start_url": "/order",
   "display": "standalone",
   "orientation": "any",

@@ -7,8 +7,8 @@ import { DeviceProvider } from "@/components/shared/device-provider";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Bakery And Coffee Eben Ezer",
-  description: "Sistema de punto de venta - Bakery And Coffee Eben Ezer",
+  title: "Bakery, Coffee and bistro Eben Ezer",
+  description: "Sistema de punto de venta - Bakery, Coffee and bistro Eben Ezer",
   manifest: "/manifest.json",
   viewport: "width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover",
   other: {
