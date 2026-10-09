@@ -547,15 +547,10 @@ async function recalcOrder(orderId: string) {
   let serviceCharge = 0;
   const now = new Date();
   const todayISO = now.toISOString().slice(0, 10);
-  const activeCharges = await db.serviceCharge.findMany({ where: { isActive: true } });
-  const todayHolidays = await db.holiday.findMany({
-    where: {
-      date: {
-        gte: new Date(todayISO + "T00:00:00.000Z"),
-        lte: new Date(todayISO + "T23:59:59.999Z"),
-      },
-    },
-  });
+  const [activeCharges, todayHolidays] = await Promise.all([
+    getCachedServiceCharges(),
+    getCachedTodayHolidays(todayISO),
+  ]);
   const isHoliday = todayHolidays.length > 0;
 
   for (const sc of activeCharges) {
@@ -594,6 +589,26 @@ async function recalcOrder(orderId: string) {
     data: { subtotal, vatAmount, exciseTaxAmount, serviceCharge, totalAmount },
   });
 }
+
+const getCachedServiceCharges = unstable_cache(
+  async () => db.serviceCharge.findMany({ where: { isActive: true } }),
+  ["active-service-charges"],
+  { revalidate: 3600, tags: ["service-charges"] }
+);
+
+const getCachedTodayHolidays = unstable_cache(
+  async (todayISO: string) =>
+    db.holiday.findMany({
+      where: {
+        date: {
+          gte: new Date(todayISO + "T00:00:00.000Z"),
+          lte: new Date(todayISO + "T23:59:59.999Z"),
+        },
+      },
+    }),
+  ["today-holidays"],
+  { revalidate: 3600, tags: ["holidays"] }
+);
 
 // ============ CATEGORIES & PRODUCTS FOR ORDER ============
 export const getCategoriesWithProducts = unstable_cache(

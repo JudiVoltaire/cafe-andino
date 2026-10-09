@@ -130,6 +130,8 @@ model Product {
   orderItems     OrderItem[]
   createdAt      DateTime               @default(now())
   updatedAt      DateTime               @updatedAt
+
+  @@index([categoryId, isAvailable])
 }
 
 // ============ TOPPING / MODIFIER ============
@@ -223,6 +225,8 @@ model Table {
   karaokePricing   KaraokePricing? @relation(fields: [karaokePricingId], references: [id])
   orders           Order[]
   createdAt        DateTime        @default(now())
+
+  @@index([areaId])
 }
 
 // ============ KARAOKE TIMING ============
@@ -359,6 +363,10 @@ model Order {
   printJobs       PrintJob[]
   createdAt       DateTime          @default(now())
   updatedAt       DateTime          @updatedAt
+
+  @@index([tableId, status])
+  @@index([status, closedAt])
+  @@index([status, openedAt])
 }
 
 model OrderItem {
@@ -376,6 +384,9 @@ model OrderItem {
   toppings    OrderItemTopping[]
   sortOrder   Int                 @default(0)
   createdAt   DateTime            @default(now())
+
+  @@index([orderId, status])
+  @@index([productId])
 }
 
 model OrderItemTopping {
@@ -386,6 +397,8 @@ model OrderItemTopping {
   topping     Topping   @relation(fields: [toppingId], references: [id])
   price       Float     @default(0)
   createdAt   DateTime  @default(now())
+
+  @@index([orderItemId])
 }
 
 // ============ KARAOKE SESSION ============
@@ -415,6 +428,8 @@ model Payment {
   status    String    @default("PENDING")
   paidAt    DateTime?
   createdAt DateTime  @default(now())
+
+  @@index([orderId])
 }
 
 model PaymentMethod {
