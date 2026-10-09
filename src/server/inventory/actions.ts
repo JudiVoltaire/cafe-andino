@@ -14,6 +14,7 @@ export async function getStockIns() {
       items: { include: { ingredient: true } },
     },
     orderBy: { createdAt: "desc" },
+    take: 50,
   });
 }
 
@@ -113,6 +114,7 @@ export async function getStockOuts() {
   return db.stockOut.findMany({
     include: { ingredient: true, user: { select: { name: true } } },
     orderBy: { createdAt: "desc" },
+    take: 50,
   });
 }
 
@@ -153,12 +155,10 @@ export async function getInventoryStatus() {
 }
 
 export async function getLowStockIngredients() {
-  return db.ingredient.findMany({
-    where: {
-      currentStock: { lte: db.ingredient.fields.minStock },
-      minStock: { gt: 0 },
-    },
+  const all = await db.ingredient.findMany({
+    where: { minStock: { gt: 0 } },
   });
+  return all.filter((i) => i.currentStock <= i.minStock);
 }
 
 export async function getIngredientRecipes(ingredientId: string) {
@@ -177,6 +177,7 @@ export async function getCashRegisters() {
       shift: { select: { name: true } },
     },
     orderBy: { openingAt: "desc" },
+    take: 50,
   });
 }
 

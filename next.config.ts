@@ -2,6 +2,8 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   output: "standalone",
+  compress: true,
+  poweredByHeader: false,
   // Cache client-side navigations to reduce RSC requests
   experimental: {
     staleTimes: {

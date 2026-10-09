@@ -1,12 +1,14 @@
 "use server";
 
 import { db } from "@/lib/db";
-import { revalidatePath, revalidateTag } from "next/cache";
+import { revalidatePath, revalidateTag, unstable_cache } from "next/cache";
 
 // ============ General Config ============
-export async function getGeneralConfig() {
-  return db.generalConfig.findFirst({ where: { id: "default" } });
-}
+export const getGeneralConfig = unstable_cache(
+  async () => db.generalConfig.findFirst({ where: { id: "default" } }),
+  ["general-config"],
+  { revalidate: 3600, tags: ["general-config"] }
+);
 
 export async function updateGeneralConfig(data: {
   restaurantName: string;
@@ -24,6 +26,7 @@ export async function updateGeneralConfig(data: {
     update: data,
   });
   revalidatePath("/settings");
+  revalidateTag("general-config", "default");
 }
 
 // ============ Users ============
@@ -327,12 +330,15 @@ export async function deletePaymentMethod(id: string) {
 }
 
 // ============ System Modules ============
-export async function getSystemModules() {
-  return db.systemModule.findMany();
-}
+export const getSystemModules = unstable_cache(
+  async () => db.systemModule.findMany(),
+  ["system-modules"],
+  { revalidate: 3600, tags: ["system-modules"] }
+);
 
 export async function isSystemModuleEnabled(name: string) {
-  const module = await db.systemModule.findUnique({ where: { name } });
+  const modules = await getSystemModules();
+  const module = modules.find((m) => m.name === name);
   return module?.enabled ?? false;
 }
 
