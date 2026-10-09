@@ -7,13 +7,13 @@ export async function getDashboardStats() {
   const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
   const tomorrow = new Date(today.getTime() + 86400000);
 
-  const [paidOrders, orderCount, activeTables, occupiedTables, recentOrders, topItem] = await Promise.all([
-    db.order.findMany({
+  const [paidAgg, orderCount, activeTables, occupiedTables, recentOrders, topItem] = await Promise.all([
+    db.order.aggregate({
       where: {
         status: "PAID",
         closedAt: { gte: today, lt: tomorrow },
       },
-      select: { totalAmount: true },
+      _sum: { totalAmount: true },
     }),
     db.order.count({
       where: {
@@ -28,9 +28,9 @@ export async function getDashboardStats() {
     db.order.findMany({
       where: {
         status: { in: ["PAID", "OPEN", "SENT"] },
-        closedAt: { gte: today, lt: tomorrow },
+        createdAt: { gte: today, lt: tomorrow },
       },
-      orderBy: { openedAt: "desc" },
+      orderBy: { createdAt: "desc" },
       take: 6,
       include: {
         table: { select: { name: true } },
@@ -49,7 +49,7 @@ export async function getDashboardStats() {
     }),
   ]);
 
-  const revenue = paidOrders.reduce((sum, o) => sum + o.totalAmount, 0);
+  const revenue = paidAgg._sum.totalAmount ?? 0;
 
   const timeline = recentOrders.map(o => ({
     label: o.status === "PAID"

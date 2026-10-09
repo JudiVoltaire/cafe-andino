@@ -1,11 +1,25 @@
-import { getInventoryStatus, getStockIns, getStockOuts, getLowStockIngredients } from "@/server/inventory/actions";
-import { getIngredients } from "@/server/settings/actions";
+import { getInventoryStatus, getStockIns, getStockOuts } from "@/server/inventory/actions";
 import { getSuppliers } from "@/server/inventory/supplier-actions";
 import { InventoryClient } from "./inventory-client";
 
 export default async function InventoryPage() {
-  const [ingredients, stockIns, stockOuts, lowStock, allIngredients, suppliers] = await Promise.all([
-    getInventoryStatus(), getStockIns(), getStockOuts(), getLowStockIngredients(), getIngredients(), getSuppliers(),
+  const [ingredients, stockIns, stockOuts, suppliers] = await Promise.all([
+    getInventoryStatus(),
+    getStockIns(),
+    getStockOuts(),
+    getSuppliers(),
   ]);
-  return <InventoryClient ingredients={ingredients} stockIns={stockIns} stockOuts={stockOuts} lowStock={lowStock} allIngredients={allIngredients} suppliers={suppliers} />;
+
+  const lowStock = ingredients.filter(i => i.minStock > 0 && i.currentStock <= i.minStock);
+
+  return (
+    <InventoryClient
+      ingredients={ingredients}
+      stockIns={stockIns}
+      stockOuts={stockOuts}
+      lowStock={lowStock}
+      allIngredients={ingredients as any}
+      suppliers={suppliers}
+    />
+  );
 }

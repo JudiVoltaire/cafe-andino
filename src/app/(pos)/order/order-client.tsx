@@ -18,8 +18,16 @@ import {
   cancelOrder,
 } from "@/server/order/actions";
 import { useBluetoothPrinter } from "@/hooks/use-bluetooth-printer";
-import { MergeConfirmModal } from "./merge-confirm-modal";
-import { SplitOrderModal } from "./split-order-modal";
+import dynamic from "next/dynamic";
+
+const MergeConfirmModal = dynamic(
+  () => import("./merge-confirm-modal").then(m => m.MergeConfirmModal),
+  { ssr: false }
+);
+const SplitOrderModal = dynamic(
+  () => import("./split-order-modal").then(m => m.SplitOrderModal),
+  { ssr: false }
+);
 
 type Area = {
   id: string; name: string; type: string;
@@ -832,7 +840,11 @@ export function OrderClient({ areas, categories }: { areas: Area[]; categories: 
   }, [activeOrderId]);
 
   useEffect(() => { if (activeOrderId) refreshOrder(); }, [refreshOrder, refreshKey]);
-  useEffect(() => { const interval = setInterval(() => router.refresh(), 30000); return () => clearInterval(interval); }, [router]);
+  useEffect(() => {
+    if (view !== "tables") return;
+    const interval = setInterval(() => router.refresh(), 30000);
+    return () => clearInterval(interval);
+  }, [router, view]);
   // Auto-refresh karaoke orders every 30s to update time
   useEffect(() => {
     if (!orderDetail || orderDetail.type !== "KARAOKE" || !activeOrderId) return;
@@ -960,8 +972,33 @@ export function OrderClient({ areas, categories }: { areas: Area[]; categories: 
       setRefreshKey(k => k + 1); setToppingProduct(null);
     });
   }
-  function handleUpdateQty(itemId: string, qty: number) { updateItemQuantity(itemId, qty); setTimeout(() => setRefreshKey(k => k + 1), 200); }
-  function handleRemoveItem(itemId: string) { removeItem(itemId); setTimeout(() => setRefreshKey(k => k + 1), 200); }
+  function handleUpdateQty(itemId: string, qty: number) {
+    setOrderDetail(prev => {
+      if (!prev) return null;
+      return {
+        ...prev,
+        items: prev.items.map(it => it.id === itemId ? { ...it, quantity: qty } : it),
+      };
+    });
+    start(async () => {
+      await updateItemQuantity(itemId, qty);
+      setRefreshKey(k => k + 1);
+    });
+  }
+
+  function handleRemoveItem(itemId: string) {
+    setOrderDetail(prev => {
+      if (!prev) return null;
+      return {
+        ...prev,
+        items: prev.items.filter(it => it.id !== itemId),
+      };
+    });
+    start(async () => {
+      await removeItem(itemId);
+      setRefreshKey(k => k + 1);
+    });
+  }
   function handleCancelItem(itemId: string) { start(async () => { await cancelItem(itemId, "user"); setRefreshKey(k => k + 1); }); }
   async function handlePrintBluetooth(orderId: string, type: string) {
     try {

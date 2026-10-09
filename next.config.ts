@@ -10,6 +10,12 @@ const nextConfig: NextConfig = {
       dynamic: 30,  // 30s cache for dynamic RSC payloads
       static: 180,  // 3min cache for static RSC payloads
     },
+    optimizePackageImports: [
+      "lucide-react",
+      "date-fns",
+      "recharts",
+      "exceljs",
+    ],
   },
   // Cache images aggressively
   images: {
