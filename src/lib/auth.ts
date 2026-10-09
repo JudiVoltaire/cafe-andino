@@ -14,29 +14,47 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         password: { label: "Password", type: "password" },
       },
       async authorize(credentials) {
-        const { username, password } = credentials as {
-          username: string;
-          password: string;
-        };
+        try {
+          const { username, password } = credentials as {
+            username: string;
+            password: string;
+          };
 
-        const user = await db.user.findUnique({
-          where: { username },
-          include: { role: true },
-        });
+          if (!username || !password) {
+            console.warn("[AUTH] Missing username or password");
+            return null;
+          }
 
-        if (!user) return null;
+          const user = await db.user.findUnique({
+            where: { username },
+            include: { role: true },
+          });
 
-        const isValid = await compare(password, user.password);
-        if (!isValid) return null;
+          if (!user) {
+            console.warn(`[AUTH] User not found: ${username}`);
+            return null;
+          }
 
-        return {
-          id: user.id,
-          name: user.name,
-          username: user.username,
-          role: user.role.name,
-          permissions: user.role.permissions,
-          scopes: user.role.scopes || "[]",
-        };
+          const isValid = await compare(password, user.password);
+          if (!isValid) {
+            console.warn(`[AUTH] Invalid password for: ${username}`);
+            return null;
+          }
+
+          console.log(`[AUTH] Login success: ${username} (${user.role?.name})`);
+
+          return {
+            id: user.id,
+            name: user.name,
+            username: user.username,
+            role: user.role.name,
+            permissions: user.role.permissions,
+            scopes: user.role.scopes || "[]",
+          };
+        } catch (err) {
+          console.error("[AUTH] Error in authorize:", err);
+          return null;
+        }
       },
     }),
   ],

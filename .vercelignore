@@ -1,0 +1,5 @@
+.env*
+!.env.example
+prisma/*.db
+prisma/*.db-journal
+screenshots/
