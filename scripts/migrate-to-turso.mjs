@@ -39,8 +39,12 @@ async function migrate() {
     const tableName = table.name;
     const createSql = table.sql;
     if (createSql) {
-      console.log(`🔨 Creando estructura de tabla: ${tableName}...`);
-      await remoteClient.execute(createSql);
+      console.log(`🔨 Verificando/Creando tabla: ${tableName}...`);
+      try {
+        await remoteClient.execute(createSql);
+      } catch (e) {
+        // Ya existe la tabla, continuar
+      }
     }
   }
 
@@ -56,12 +60,85 @@ async function migrate() {
     }
   }
 
-  // 4. Migrar los datos de cada tabla
-  console.log("\n📦 Migrando registros...");
+  // 4. Migrar los datos de cada tabla en orden topológico (respetando dependencias de Foreign Keys)
+  const TABLE_ORDER = [
+    // Nivel 1: Configuración base sin dependencias
+    "Role",
+    "Area",
+    "CashFlowCategory",
+    "Category",
+    "Currency",
+    "Discount",
+    "ExciseTax",
+    "GeneralConfig",
+    "Holiday",
+    "PaymentMethod",
+    "PrintTemplate",
+    "Printer",
+    "ServiceCharge",
+    "Supplier",
+    "SystemModule",
+    "Unit",
+    "Vat",
+
+    // Nivel 2: Usuarios, Mesas, Productos, Ingredientes
+    "User",
+    "Table",
+    "Product",
+    "Ingredient",
+    "ToppingGroup",
+    "PrinterArea",
+    "Shift",
+
+    // Nivel 3: Toppings y Recetas
+    "Topping",
+    "ProductToppingGroup",
+    "IngredientRecipe",
+
+    // Nivel 4: Lotes de inventario, Turnos, Cajas, Entradas/Salidas
+    "InventoryBatch",
+    "ShiftAssignment",
+    "CashRegister",
+    "StockIn",
+    "StockOut",
+
+    // Nivel 5: Detalle de stock y Flujo de caja
+    "StockInIngredient",
+    "StockOutBatch",
+    "CashFlow",
+    "PettyTransaction",
+
+    // Nivel 6: Sesiones y Órdenes
+    "KaraokePricing",
+    "KaraokeSession",
+    "Order",
+
+    // Nivel 7: Ítems de orden y Pagos
+    "OrderItem",
+    "Payment",
+    "OrderLog",
+    "PrintJob",
+
+    // Nivel 8: Toppings de ítems
+    "OrderItemTopping",
+
+    // Nivel 9: Logs del sistema
+    "LoginLog",
+    "AuditLog",
+    "_prisma_migrations"
+  ];
+
+  // Añadir cualquier tabla no contemplada al final
+  const allTableNames = tableRows.rows.map((t) => t.name);
+  const orderedTables = [
+    ...TABLE_ORDER.filter((name) => allTableNames.includes(name)),
+    ...allTableNames.filter((name) => !TABLE_ORDER.includes(name))
+  ];
+
+  console.log("\n📦 Migrando registros en orden de dependencias...");
   let totalMigratedRows = 0;
 
-  for (const table of tableRows.rows) {
-    const tableName = table.name;
+  for (const tableName of orderedTables) {
     const localData = await localClient.execute(`SELECT * FROM "${tableName}"`);
     const count = localData.rows.length;
 
