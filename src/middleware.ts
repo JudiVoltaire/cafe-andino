@@ -1,5 +1,8 @@
-import { auth } from "@/lib/auth";
+import NextAuth from "next-auth";
+import { authConfig } from "@/lib/auth.config";
 import { NextResponse } from "next/server";
+
+const { auth } = NextAuth(authConfig);
 
 const MODULE_ROUTES: Record<string, string> = {
   "/order": "order",
@@ -24,7 +27,7 @@ export default auth((req) => {
   }
 
   // Check module permission
-  const session = req.auth.user;
+  const session = req.auth.user as { permissions?: string; scopes?: string };
   const permissions: string[] = (() => {
     try { return JSON.parse(session.permissions || "[]"); } catch { return []; }
   })();
