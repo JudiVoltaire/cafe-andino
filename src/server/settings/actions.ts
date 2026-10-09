@@ -96,16 +96,19 @@ export async function getCategories() {
 export async function createCategory(data: { name: string; slug: string; sortOrder?: number; imageUrl?: string }) {
   await db.category.create({ data: { ...data, sortOrder: data.sortOrder ?? 0 } });
   revalidatePath("/settings/categories");
+  revalidatePath("/order");
 }
 
 export async function updateCategory(id: string, data: { name?: string; slug?: string; sortOrder?: number }) {
   await db.category.update({ where: { id }, data });
   revalidatePath("/settings/categories");
+  revalidatePath("/order");
 }
 
 export async function deleteCategory(id: string) {
   await db.category.delete({ where: { id } });
   revalidatePath("/settings/categories");
+  revalidatePath("/order");
 }
 
 // ============ VAT ============
@@ -400,16 +403,19 @@ export async function createProduct(data: {
 }) {
   await db.product.create({ data: { ...data, costPrice: data.costPrice ?? 0, sortOrder: data.sortOrder ?? 0 } });
   revalidatePath("/settings/products");
+  revalidatePath("/order");
 }
 
 export async function updateProduct(id: string, data: any) {
   await db.product.update({ where: { id }, data });
   revalidatePath("/settings/products");
+  revalidatePath("/order");
 }
 
 export async function deleteProduct(id: string) {
   await db.product.delete({ where: { id } });
   revalidatePath("/settings/products");
+  revalidatePath("/order");
 }
 
 // ============ Product-Topping Linking ============

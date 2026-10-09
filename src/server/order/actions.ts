@@ -1,7 +1,7 @@
 "use server";
 
 import { db } from "@/lib/db";
-import { revalidatePath } from "next/cache";
+import { revalidatePath, unstable_cache } from "next/cache";
 import { autoDeductStockForOrder } from "@/server/recipe/actions";
 import { isSystemModuleEnabled } from "@/server/settings/actions";
 
@@ -596,22 +596,26 @@ async function recalcOrder(orderId: string) {
 }
 
 // ============ CATEGORIES & PRODUCTS FOR ORDER ============
-export async function getCategoriesWithProducts() {
-  return db.category.findMany({
-    include: {
-      products: {
-        where: { isAvailable: true },
-        include: {
-          vat: true,
-          exciseTax: true,
-          unit: true,
-          toppingGroups: {
-            include: { toppingGroup: { include: { toppings: { orderBy: { sortOrder: "asc" } } } } },
+export const getCategoriesWithProducts = unstable_cache(
+  async () => {
+    return db.category.findMany({
+      include: {
+        products: {
+          where: { isAvailable: true },
+          include: {
+            vat: true,
+            exciseTax: true,
+            unit: true,
+            toppingGroups: {
+              include: { toppingGroup: { include: { toppings: { orderBy: { sortOrder: "asc" } } } } },
+            },
           },
+          orderBy: { sortOrder: "asc" },
         },
-        orderBy: { sortOrder: "asc" },
       },
-    },
-    orderBy: { sortOrder: "asc" },
-  });
-}
+      orderBy: { sortOrder: "asc" },
+    });
+  },
+  ["categories-with-products"],
+  { revalidate: 3600, tags: ["products", "categories"] }
+);
